@@ -36,7 +36,9 @@ final class DefaultConvertIngredientsToWeightUseCase: ConvertIngredientsToWeight
 /// Finds a recipe's ingredient among the cached entries. Strict on purpose (PLAN.md: no
 /// guessing): it forgives only spelling differences that can't change the ingredient, which
 /// are case, Unicode form, surrounding spaces, a hyphen written as a space ("all purpose
-/// flour") and a plural ending ("walnut" → "walnuts"). "Unsalted butter" doesn't match "butter".
+/// flour") and a plural ending ("walnut" → "walnuts"). When the name finds nothing, it tries
+/// again without the words that don't change what a cup weighs (`WeightNeutralWords`), so
+/// "zachte boter" finds "boter"; "salted butter" or "sifted flour" still find nothing.
 struct DensityNameIndex {
     private var entries: [String: DensityEntry] = [:]
 
@@ -49,6 +51,10 @@ struct DensityNameIndex {
     func entry(forIngredientNamed name: String) -> DensityEntry? {
         let key = Self.key(for: name)
         guard !key.isEmpty else { return nil }
+        return entry(forKey: key) ?? WeightNeutralWords.removing(from: key).flatMap(entry(forKey:))
+    }
+
+    private func entry(forKey key: String) -> DensityEntry? {
         var candidates = [key, key + "s", key + "es"]
         for suffix in ["es", "s"] where key.hasSuffix(suffix) {
             candidates.append(String(key.dropLast(suffix.count)))
