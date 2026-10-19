@@ -2,10 +2,10 @@
 import XCTest
 
 final class LogTests: XCTestCase {
-    func testSummarizesAFoundationErrorByTypeDomainAndCode() {
+    func testSummarizesAFoundationErrorByDomainAndCode() {
         let error = NSError(domain: NSCocoaErrorDomain, code: NSFileReadNoSuchFileError, userInfo: [NSFilePathErrorKey: "/Users/someone/recipe.txt"])
 
-        XCTAssertEqual(error.logSummary, "NSError NSCocoaErrorDomain 260")
+        XCTAssertEqual(error.logSummary, "NSCocoaErrorDomain 260")
     }
 
     /// The summary is logged public, so it must never carry an associated value: a failed page
@@ -14,8 +14,12 @@ final class LogTests: XCTestCase {
         let underlying = NSError(domain: NSURLErrorDomain, code: NSURLErrorTimedOut, userInfo: [NSURLErrorFailingURLStringErrorKey: "https://example.com/private-recipe"])
         let error = WebPageFetchError.requestFailed(underlying: underlying)
 
-        XCTAssertTrue(error.logSummary.hasPrefix("WebPageFetchError RecipeRaccoon.WebPageFetchError "), error.logSummary)
-        XCTAssertFalse(error.logSummary.contains("example.com"), error.logSummary)
+        XCTAssertEqual(error.logSummary, "RecipeRaccoon.WebPageFetchError 0")
+    }
+
+    /// The doc comment's example: a case without values counts after the ones with them.
+    func testASwiftErrorsCodeIsItsCasePosition() {
+        XCTAssertEqual(WebPageFetchError.tooLarge.logSummary, "RecipeRaccoon.WebPageFetchError 4")
     }
 
     func testAttemptReturnsTheResultWhenNothingThrows() {

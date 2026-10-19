@@ -16,7 +16,7 @@ enum Log {
 
 extension Logger {
     /// Logs that `what` failed: `what` and the error's `logSummary` in the clear, its
-    /// description private ("Failed to seed preset tags: NSError NSCocoaErrorDomain 134030 <private>").
+    /// description private ("Failed to seed preset tags: NSCocoaErrorDomain 134030 <private>").
     func failure(_ what: String, _ error: any Error) {
         self.error("\(what, privacy: .public): \(error.logSummary, privacy: .public) \(error.localizedDescription)")
     }
@@ -35,11 +35,14 @@ extension Logger {
 }
 
 extension Error {
-    /// The error's type, domain and code ("StorageModeError RecipeRaccoon.StorageModeError 1"),
-    /// which never hold user content, so they can be logged `.public` and read in a user's
-    /// sysdiagnose. The description can quote a URL or recipe text and stays private.
+    /// The error's domain and code ("NSCocoaErrorDomain 134030"), which never hold user content,
+    /// so they can be logged `.public` and read in a user's sysdiagnose. The description can quote
+    /// a URL or recipe text and stays private. A Swift error's domain is its type
+    /// ("RecipeRaccoon.WebPageFetchError 4" is `.tooLarge`), and its code the case's position,
+    /// counting the cases with associated values first. Keep it that way: an error type of our
+    /// own must not put user content in a custom domain.
     var logSummary: String {
         let nsError = self as NSError
-        return "\(type(of: self)) \(nsError.domain) \(nsError.code)"
+        return "\(nsError.domain) \(nsError.code)"
     }
 }

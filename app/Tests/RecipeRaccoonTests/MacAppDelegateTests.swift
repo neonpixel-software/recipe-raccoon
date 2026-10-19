@@ -23,8 +23,8 @@ final class MacAppDelegateTests: XCTestCase {
         XCTAssertEqual(registrations, 0)
     }
 
-    /// A failed registration is only logged.
-    func testAFailedRegistrationDoesNotRegisterAgain() {
+    /// A failed registration is only logged: the delegate doesn't retry it.
+    func testAFailedRegistrationIsOnlyLogged() {
         var registrations = 0
         let sut = MacAppDelegate(isICloudEnabled: true, registerForRemoteNotifications: { registrations += 1 })
 
