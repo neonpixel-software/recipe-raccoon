@@ -5,8 +5,9 @@ using RecipeRaccoon.DensityApi.Application;
 using RecipeRaccoon.DensityApi.Application.Seeding;
 using RecipeRaccoon.DensityApi.Infrastructure;
 
-// One-off import of UsdaSeedData into the density table (PLAN.md Phase 9.1). Safe to re-run:
-// ingredients already in the table are reported and left alone (see DensitySeeder).
+// Import of DensitySeedData (the USDA rows and their translated names) into the density table
+// (PLAN.md Phase 9.1). Safe to re-run: ingredients already in the table are reported and left
+// alone (see DensitySeeder), so a re-run adds only the names that are new.
 //
 //   dotnet run --project src/RecipeRaccoon.DensityApi.Seed -- --connection "<connection string>" [--dry-run]
 //
@@ -64,7 +65,7 @@ if (pending.Count > 0)
 }
 
 var seeder = new DensitySeeder(scope.ServiceProvider.GetRequiredService<IDensityEntryRepository>());
-var result = await seeder.SeedAsync(UsdaSeedData.Rows, dryRun, CancellationToken.None);
+var result = await seeder.SeedAsync(DensitySeedData.Rows, dryRun, CancellationToken.None);
 var inserted = dryRun ? "would insert" : "inserted";
 
 foreach (var entry in result.Inserted)

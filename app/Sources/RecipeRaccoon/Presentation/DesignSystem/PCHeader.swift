@@ -1,3 +1,4 @@
+import CoreText
 import SwiftUI
 
 /// Branded screen header: a pink block with a subtle dot texture and an Edo SZ title,
@@ -22,34 +23,86 @@ struct PCHeader: View {
 
     let title: String
 
+    /// The header's width, once laid out; 0 before that, when the title shows in full.
+    @State private var headerWidth: CGFloat = 0
+
     var body: some View {
-        OutlinedText(text: title, font: PCFont.display(Self.titleSize), fill: .white, outline: PCColor.ink, width: Self.titleOutlineWidth)
-            .accessibilityIdentifier(Self.titleAccessibilityIdentifier)
-            .padding(.horizontal, Self.horizontalPadding)
-            .padding(.bottom, Self.bottomPadding)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-            .frame(height: Self.height)
-            // Ignoring the safe area on the background alone keeps the layout size at `height`.
-            // Ignoring it on the whole view made safeAreaInset reserve the full height below the
-            // bar while the pink was drawn from the top of the screen, leaving a bar-high gap (#94).
-            .background {
-                ZStack {
-                    PCColor.pink
-                    Canvas { context, size in
-                        var xPos: CGFloat = 0
-                        while xPos < size.width {
-                            var yPos: CGFloat = 0
-                            while yPos < size.height {
-                                let dot = Path(ellipseIn: CGRect(x: xPos, y: yPos, width: Self.dotDiameter, height: Self.dotDiameter))
-                                context.fill(dot, with: .color(.white.opacity(Self.dotOpacity)))
-                                yPos += Self.dotSpacing
-                            }
-                            xPos += Self.dotSpacing
+        OutlinedText(
+            text: HeaderTitleFitting.fitting(title, in: titleWidth) { HeaderTitleFitting.displayWidth(of: $0, size: Self.titleSize) },
+            label: title,
+            font: PCFont.display(Self.titleSize),
+            fill: .white,
+            outline: PCColor.ink,
+            width: Self.titleOutlineWidth
+        )
+        .accessibilityIdentifier(Self.titleAccessibilityIdentifier)
+        .padding(.horizontal, Self.horizontalPadding)
+        .padding(.bottom, Self.bottomPadding)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { headerWidth = $0 }
+        .frame(height: Self.height)
+        // Ignoring the safe area on the background alone keeps the layout size at `height`.
+        // Ignoring it on the whole view made safeAreaInset reserve the full height below the
+        // bar while the pink was drawn from the top of the screen, leaving a bar-high gap (#94).
+        .background {
+            ZStack {
+                PCColor.pink
+                Canvas { context, size in
+                    var xPos: CGFloat = 0
+                    while xPos < size.width {
+                        var yPos: CGFloat = 0
+                        while yPos < size.height {
+                            let dot = Path(ellipseIn: CGRect(x: xPos, y: yPos, width: Self.dotDiameter, height: Self.dotDiameter))
+                            context.fill(dot, with: .color(.white.opacity(Self.dotOpacity)))
+                            yPos += Self.dotSpacing
                         }
+                        xPos += Self.dotSpacing
                     }
                 }
-                .ignoresSafeArea(edges: .top)
             }
+            .ignoresSafeArea(edges: .top)
+        }
+    }
+
+    /// Room for the title between the paddings, less the outline on both ends.
+    private var titleWidth: CGFloat {
+        max(0, headerWidth - 2 * (Self.horizontalPadding + Self.titleOutlineWidth))
+    }
+}
+
+/// Fits a long title into the header's one line. SwiftUI's own truncation can't be used: Edo
+/// SZ's "…" glyph is blank, so a cut title ended with no sign that it goes on (PR #212). This
+/// cuts it itself and ends it in three periods, which the font does draw.
+enum HeaderTitleFitting {
+    static let ellipsis = "..."
+
+    /// `title` when it fits in `width` (or the width isn't known yet), else its longest start
+    /// that fits with `ellipsis` after it. `measure` gives a text's width in the title font.
+    static func fitting(_ title: String, in width: CGFloat, measure: (String) -> CGFloat) -> String {
+        guard width > 0, measure(title) > width else { return title }
+        let characters = Array(title)
+        func cut(_ count: Int) -> String {
+            String(characters.prefix(count)).trimmingCharacters(in: .whitespaces) + ellipsis
+        }
+        // The longest start that fits; a longer start is never narrower, so a binary search.
+        var fits = 0
+        var tooLong = characters.count
+        while tooLong - fits > 1 {
+            let middle = (fits + tooLong) / 2
+            if measure(cut(middle)) <= width {
+                fits = middle
+            } else {
+                tooLong = middle
+            }
+        }
+        return cut(fits)
+    }
+
+    /// A text's width in Edo SZ at `size`, as the header draws it.
+    static func displayWidth(of text: String, size: CGFloat) -> CGFloat {
+        let font = CTFontCreateWithName("Edo SZ" as CFString, size, nil)
+        let string = NSAttributedString(string: text, attributes: [NSAttributedString.Key(kCTFontAttributeName as String): font])
+        return CTLineGetTypographicBounds(CTLineCreateWithAttributedString(string), nil, nil, nil)
     }
 }
 
@@ -60,6 +113,8 @@ struct PCHeader: View {
 /// curved and slanted strokes of Edo SZ.
 private struct OutlinedText: View {
     let text: String
+    /// What VoiceOver reads: the whole title, also when `text` is cut short.
+    let label: String
     let font: Font
     let fill: Color
     let outline: Color
@@ -87,10 +142,14 @@ private struct OutlinedText: View {
                     }
                 }
             }
+            // PCHeader cuts a long title to fit itself; this is the fallback should the measurement
+            // be off by a little. Set here, the limit reaches the fill and the outline copies alike,
+            // so they cut at the same place.
+            .lineLimit(1)
             // One element for the fill and its copies. Hiding the copies' ZStack didn't remove
             // them: the accessibility tree had the title 17 times (found by the UI tests, #98).
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text(text))
+            .accessibilityLabel(Text(label))
     }
 }
 
