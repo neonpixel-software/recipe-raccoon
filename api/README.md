@@ -39,6 +39,12 @@ Seed density values come from [USDA FoodData Central](https://fdc.nal.usda.gov/)
 ID and the portion it came from. Don't add values copied from sources whose license doesn't
 permit redistribution in this MIT-licensed repo (see PLAN.md Phase 9.1).
 
+`TranslatedSeedNames` (next to `UsdaSeedData`) adds the Dutch, German, French and Spanish
+names recipes use for the same ingredients. Each is a seed row with the English row's FDC
+source and density, so the app's strict name matching finds "bloem" as well as
+"all-purpose flour". To add a language or a name, add it there; re-running the seed tool
+inserts only the new names.
+
 > U.S. Department of Agriculture, Agricultural Research Service.
 > FoodData Central. fdc.nal.usda.gov.
 
