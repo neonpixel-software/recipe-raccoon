@@ -34,19 +34,32 @@ equipment aren't scaled (rewriting free text is risky).
 
 ## Form
 
-A "Servings" row in the form's first section, with the title: a stepper from
-1 to 99 and a "Not set" state that can be cleared back to. New recipes start
-unset unless capture found a number.
+A "Servings" row of its own directly under the title field, above Photos: a
+stepper from 1 to 99 and a "Not set" state that it can be cleared back to.
+New recipes start unset unless capture found a number.
 
 ## Capture
 
 - `CapturedRecipeSchema` gets a `servings` field: "How many people or servings
   the recipe makes, as a whole number, if stated, else empty."
-- Like ingredients, the number is kept only when it appears in the source
-  text, so the model can't invent one. A range ("4–6") takes the lower number.
-  Anything that isn't a whole number from 1 to 99 is dropped.
+- The number is kept only when the source states it as servings, so the model
+  can't invent one. The ingredient check (`IngredientDescriptors.appears`) is
+  too weak here: a bare "4" occurs in almost any recipe ("bake for 4 minutes",
+  step 4, "4 eggs"). The number has to appear as a whole number (also inside
+  a range, "4–6" or "4-6") in one of these places, ignoring case and accents:
+  - next to a servings word, before or after it, at most one word between:
+    serves, serving(s), portion(s), people, persons; personen, porties;
+    Portion(en), Personen; personne(s), part(s); persona(s), ración/raciones,
+    porción/porciones, comensales ("Serves 4", "4–6 personen", "4 Portionen",
+    "pour 6 personnes");
+  - right after a yield word: makes, yield(s), ergibt, rinde ("Makes 12
+    muffins", "Yield: 1 loaf");
+  - right after "for", "voor", "für", "pour" or "para" at the start of a line,
+    unless a time unit follows ("Voor 12 muffins", but not "For 4 minutes").
+- A range takes the lower number. Anything that isn't a whole number from 1
+  to 99 is dropped.
 - URL capture: `RecipeStructuredData` passes the JSON-LD `recipeYield` into
-  the text the model reads, so it's there to pick up.
+  the text the model reads as a "Yield: …" line, so the rule above grounds it.
 
 ## Scaling
 
@@ -58,12 +71,24 @@ unset unless capture found a number.
     "1 1/2 tbsp", "2.5 dl"), only that part is replaced.
   - Otherwise the line is built from amount, unit and name.
   - A line without an amount ("salt to taste", "a pinch") is unchanged.
-- Rounding (shown amount only):
-  - Cups and spoons: nearest ¼ or ⅓ (⅛ below 1 for spoons), as fractions.
-  - Metric units: whole numbers, tens above 100.
-  - Ounces, pounds, pints and the like: one decimal.
-  - Counted items (no unit, or a unit without a fixed size): nearest ½.
+- Rounding (shown amount only). The unit's group comes from the
+  `MeasurementUnits` table, which already knows the units' spellings in all
+  five languages. 15.3 adds which system each of its units belongs to rather
+  than starting a second table:
+  - Cups and spoons: a whole number plus the nearest of 0, ¼, ⅓, ½, ⅔ or ¾.
+    Spoons below 1 can also be ⅛. An amount already on a step stays exact
+    (⅔ × 2 = 1⅓). A tie goes to the smaller amount (5/12 is as close to ⅓ as
+    to ½, and shows ⅓).
+  - Metric units (ml, cl, dl, l, g, kg, mg): whole numbers, tens above 100.
+  - Other imperial and US units (fl oz, pints, quarts, gallons, ounces,
+    pounds): one decimal.
+  - Counted: no unit, or a unit `MeasurementUnits` doesn't know ("clove",
+    "can"): nearest ½.
   - A non-zero amount never rounds to 0; it shows the smallest step instead.
+  - The text shows the amount the way the form's Amount field does, with
+    `IngredientAmountFormatter` ("1⅓", "⅛", "2.5"). It moves from
+    Presentation to Domain so `scaled(by:)` can use it, and what it writes
+    still reads back through `IngredientAmountParser`.
 - The Weight view converts the scaled lines, so grams follow. Grams come from
   the exact scaled amount, not the rounded one.
 - Known limit: units keep their singular or plural form as written ("1 cup"
@@ -83,14 +108,25 @@ unset unless capture found a number.
 - Unit:
   - `IngredientLine.scaled(by:)`: replacing the amount in the text (whole,
     decimal, "½", "1 1/2"), building the line when the amount isn't in the
-    text, unchanged lines without an amount, each rounding rule, never 0.
-  - Capture: "Serves 4", "4–6 personen", "12 muffins"; a number not in the
-    source is dropped; empty stays nil.
+    text, unchanged lines without an amount, each rounding group
+    (also with a unit in another language and an unknown unit), exact steps,
+    the tie rule, never 0.
+  - Capture: "Serves 4", "4–6 personen", "4-6 Portionen", "Makes 12
+    muffins", "Voor 12 muffins" and a "Yield: 1 loaf" line from JSON-LD are
+    kept. A number found only in "Bake for 4 minutes", "For 4 minutes, stir",
+    a step "4." or "4 eggs" is dropped, as is one not in the source at all.
+    Empty stays nil.
   - Storage: servings round-trips; a recipe without the field loads as nil.
   - Detail view model and view: +/− within 1–99, reset, "(recipe: N)" only
     when changed, the "Set servings" prompt, scaled grams in the Weight view.
   - Form: setting, changing and clearing servings.
-- UI: a recipe for 2, + twice, "⅔ cup flour" reads "1⅓ cup flour".
+- UI: a new `servingsDetail` scenario opens on the detail screen of a recipe
+  for 2 with "⅔ cup flour" and "salt to taste". On iOS the test taps + twice
+  and reads "1⅓ cup flour", the original line under it, "(recipe: 2)" and an
+  unchanged "salt to taste". Clicks don't reach the app on GitHub's macOS
+  runner (PLAN.md testing rules), so on the Mac the test checks only the
+  start state ("Servings", 2, no "(recipe: …)"). The unit tests above cover
+  the arithmetic, as with Make Cover in the photos tests (#150).
 - Strings: "Servings", "Set servings", "(recipe: %lld)" and the reset label in
   the five languages, with a native-speaker check.
 - On device: capture the miljuschka.nl banana bread and a French recipe,
