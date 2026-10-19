@@ -247,6 +247,17 @@ Added 2026-10-08, before the first release, and done before Phase 12 like Phase 
 
 **Checkpoint:** a new user is introduced to the app once, and anyone can find out why it exists, check its code and report a problem.
 
+### Phase 15: Servings and scaling
+Added 2026-10-16, after the 1.0.1 release. Design: `app/docs/plans/2026-10-16-servings-scaling-design.md`.
+- [ ] **15.1 Servings on a recipe** — an optional number of servings (1–99) on the recipe, stored and synced, set in the form.
+  Acceptance: servings can be set, changed and cleared in the form, survive a relaunch and sync to another device; recipes from before have none. The `servings` field is deployed to the production CloudKit schema before the build that ships it.
+- [ ] **15.2 Servings from capture** — Apple Intelligence reads the number of servings (or a yield like "12 muffins") from typed text and web pages, kept only when it appears in the source.
+  Acceptance: "Serves 4", "4–6 personen" and "Makes 12 muffins" give 4, 4 and 12; a number the source doesn't state as servings ("bake for 4 minutes", "4 eggs"), or doesn't contain at all, is dropped; web pages pass their `recipeYield` to the model.
+- [ ] **15.3 Scaling on the recipe screen** — a +/− servings control that scales the ingredient amounts for the moment (not saved), with kitchen-friendly rounding, the original line underneath, and the Weight view following; a "Set servings" prompt when the recipe has none.
+  Acceptance: a recipe for 2 shown for 4 doubles every amount (rounded as the design says), lines without an amount stay as written, grams double in the Weight view, reopening shows the recipe's own number, and all new text is in the five languages.
+
+**Checkpoint:** a recipe can be cooked for any number of servings without doing the arithmetic.
+
 ### Phase 12: Release & distribution
 - [x] **12.1 App Store Connect setup + App Privacy labels** — register the app in App Store Connect and complete the mandatory App Privacy labels. The labels must be truthful: this app collects no user data (see the plan's privacy stance above), so the declaration is "data not collected".
   Acceptance: privacy labels submitted and passing review with a truthful no-data-collection declaration for all three platforms.
