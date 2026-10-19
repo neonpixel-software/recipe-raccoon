@@ -46,12 +46,7 @@ struct RecipeRaccoonApp: App {
         webPageFetcher = URLSessionWebPageFetcher()
         captureRecipeUseCase = DefaultCaptureRecipeUseCase(captureService: captureService)
         checkCaptureAvailabilityUseCase = DefaultCheckCaptureAvailabilityUseCase(captureService: captureService)
-        do {
-            densityContainer = try Self.makeDensityContainer()
-        } catch {
-            print("Failed to open the density cache: \(error)")
-            densityContainer = nil
-        }
+        densityContainer = Log.app.attempt("Failed to open the density cache") { try Self.makeDensityContainer() }
         convertIngredientsToWeightUseCase = densityContainer.map {
             DefaultConvertIngredientsToWeightUseCase(cacheRepository: SwiftDataDensityCacheRepository(modelContext: $0.mainContext))
         }
@@ -220,7 +215,7 @@ struct RecipeRaccoonApp: App {
                         do {
                             try await refreshDensityCacheUseCase.executeIfStale()
                         } catch {
-                            print("Refreshing ingredient densities failed: \(error)")
+                            Log.app.failure("Refreshing ingredient densities failed", error)
                         }
                     }
                 }

@@ -62,6 +62,19 @@ final class RecipeCaptureViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.isCapturing)
     }
 
+    /// A failure from the model itself (guardrail, schema mismatch) is logged, and the user
+    /// sees the same message.
+    func testCaptureShowsTheSameMessageWhenTheModelFails() async {
+        let failure = RecipeCaptureError.captureFailed(underlying: CaptureFailure())
+        let viewModel = RecipeCaptureViewModel(captureRecipeUseCase: FakeCaptureRecipeUseCase(result: .failure(failure)))
+        viewModel.rawText = "some recipe text"
+
+        let result = await viewModel.capture()
+
+        XCTAssertNil(result)
+        XCTAssertEqual(viewModel.errorMessage, String(localized: "Couldn't extract a recipe from that text. Check it over and try again."))
+    }
+
     private func makeRecipe(title: String = "") -> Recipe {
         Recipe(id: UUID(), title: title, ingredients: [], steps: [], source: .typed, tags: [])
     }

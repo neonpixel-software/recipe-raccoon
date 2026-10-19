@@ -53,7 +53,7 @@ final class SettingsViewModel {
             let changes = try await refreshDensityCacheUseCase.execute()
             densityStatus = changes.isEmpty ? .upToDate : .updated
         } catch {
-            print("Refreshing ingredient densities failed: \(error)")
+            Log.presentation.failure("Refreshing ingredient densities failed", error)
             densityStatus = .failed(DensityRefreshFailure(error))
         }
         lastDensityRefresh = refreshDensityCacheUseCase.lastRefresh
@@ -76,7 +76,7 @@ final class SettingsViewModel {
         } catch let StorageModeError.iCloudUnavailable(status) {
             errorMessage = Self.message(for: status)
         } catch {
-            print("Switching storage mode failed: \(error)")
+            Log.presentation.failure("Switching storage mode failed", error)
             errorMessage = String(localized: "Couldn't change where recipes are stored. Try again.")
         }
     }

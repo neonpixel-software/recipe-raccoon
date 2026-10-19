@@ -30,7 +30,7 @@ final class RecipeURLCaptureViewModel {
             errorMessage = nil
             return recipe
         } catch {
-            print("Recipe URL capture failed: \(error)")
+            Log.presentation.failure("Recipe URL capture failed", error)
             if case WebPageFetchError.tooLarge = error {
                 errorMessage = String(localized: "That page is too large to read. Try a link to just the recipe.")
             } else if case WebPageFetchError.insecureConnection = error {

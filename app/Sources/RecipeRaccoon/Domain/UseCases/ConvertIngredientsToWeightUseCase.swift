@@ -16,13 +16,7 @@ final class DefaultConvertIngredientsToWeightUseCase: ConvertIngredientsToWeight
     }
 
     func execute(_ lines: [IngredientLine], standard: VolumeStandard) -> [UUID: IngredientWeight] {
-        let entries: [DensityEntry]
-        do {
-            entries = try cacheRepository.allEntries()
-        } catch {
-            print("Reading the density cache failed: \(error)")
-            entries = []
-        }
+        let entries = Log.domain.attempt("Reading the density cache failed") { try cacheRepository.allEntries() } ?? []
         let index = DensityNameIndex(entries)
         var weights: [UUID: IngredientWeight] = [:]
         for line in lines {

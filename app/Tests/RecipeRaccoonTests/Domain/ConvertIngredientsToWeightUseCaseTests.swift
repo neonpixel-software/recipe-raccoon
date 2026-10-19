@@ -64,6 +64,18 @@ final class ConvertIngredientsToWeightUseCaseTests: XCTestCase {
         XCTAssertEqual(weights[butter.id], .grams(100))
     }
 
+    /// An unreadable cache converts like an empty one: weight units only, no crash.
+    func testAnUnreadableCacheConvertsLikeAnEmptyOne() {
+        let useCase = DefaultConvertIngredientsToWeightUseCase(cacheRepository: UnreadableDensityCache())
+        let flour = line("1 cup flour", 1, "cup", "all-purpose flour")
+        let butter = line("100 g butter", 100, "g", "butter")
+
+        let weights = useCase.execute([flour, butter], standard: .usCustomary)
+
+        XCTAssertEqual(weights[flour.id], .unavailable(.noDensity))
+        XCTAssertEqual(weights[butter.id], .grams(100))
+    }
+
     /// The cup size is the user's Settings choice, passed in by the view (not the language).
     func testUsesTheChosenVolumeStandard() throws {
         let useCase = try makeUseCase([entry("all-purpose flour", 0.528344104716297)])
@@ -72,6 +84,13 @@ final class ConvertIngredientsToWeightUseCaseTests: XCTestCase {
         XCTAssertEqual(useCase.execute([flour], standard: .usCustomary)[flour.id], .grams(236.5882365 * 0.528344104716297))
         XCTAssertEqual(useCase.execute([flour], standard: .metric)[flour.id], .grams(250 * 0.528344104716297))
     }
+}
+
+private struct UnreadableDensityCache: DensityCacheRepository {
+    func apply(_: [DensityEntry]) throws -> DensityCacheChanges { throw CocoaError(.fileReadCorruptFile) }
+    func entry(forIngredientNamed _: String) throws -> DensityEntry? { throw CocoaError(.fileReadCorruptFile) }
+    func allEntries() throws -> [DensityEntry] { throw CocoaError(.fileReadCorruptFile) }
+    func isEmpty() throws -> Bool { throw CocoaError(.fileReadCorruptFile) }
 }
 
 final class DensityNameIndexTests: XCTestCase {

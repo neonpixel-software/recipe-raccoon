@@ -15,7 +15,7 @@ struct CloudKitAccountStatusProvider: ICloudAccountStatusProvider {
             let status = try await CKContainer(identifier: RecipeStore.cloudKitContainerIdentifier).accountStatus()
             return Self.map(status)
         } catch {
-            print("Checking the iCloud account failed: \(error)")
+            Log.data.failure("Checking the iCloud account failed", error)
             return .couldNotDetermine
         }
     }

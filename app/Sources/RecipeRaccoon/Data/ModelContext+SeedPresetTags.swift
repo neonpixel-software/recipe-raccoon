@@ -18,12 +18,8 @@ extension ModelContext {
             insert(TagModel(name: name, isPreset: true))
         }
 
-        do {
-            try save()
-        } catch {
-            // Presets are load-bearing (an empty filter row is a visible regression), so a
-            // silent failure here is worth surfacing even without a logging framework yet.
-            print("Failed to seed preset tags: \(error)")
-        }
+        // Presets are load-bearing (an empty filter row is a visible regression), so a
+        // silent failure here is worth surfacing.
+        Log.data.attempt("Failed to seed preset tags") { try save() }
     }
 }
