@@ -5,12 +5,33 @@ import os
 /// (Console, sysdiagnose) in TestFlight and App Store builds. `print()` output only shows under
 /// the Xcode debugger: on a normal launch it's discarded (#214). The logs stay on the device.
 enum Log {
-    private static let subsystem = Bundle.main.bundleIdentifier ?? "com.neonpixel.reciperaccoon"
+    /// The app's bundle identifier, the same on iOS and macOS (project.yml).
+    private static let subsystem = "com.neonpixel.reciperaccoon"
 
     static let app = Logger(subsystem: subsystem, category: "app")
     static let data = Logger(subsystem: subsystem, category: "data")
     static let domain = Logger(subsystem: subsystem, category: "domain")
     static let presentation = Logger(subsystem: subsystem, category: "presentation")
+}
+
+extension Logger {
+    /// Logs that `what` failed: `what` and the error's `logSummary` in the clear, its
+    /// description private ("Failed to seed preset tags: NSError NSCocoaErrorDomain 134030 <private>").
+    func failure(_ what: String, _ error: any Error) {
+        self.error("\(what, privacy: .public): \(error.logSummary, privacy: .public) \(error.localizedDescription)")
+    }
+
+    /// Runs `body` and returns its result, or logs the failure and returns nil when it throws:
+    /// for failures that only need logging.
+    @discardableResult
+    func attempt<T>(_ what: String, _ body: () throws -> T) -> T? {
+        do {
+            return try body()
+        } catch {
+            failure(what, error)
+            return nil
+        }
+    }
 }
 
 extension Error {

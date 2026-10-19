@@ -33,7 +33,7 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func application(_: NSApplication, didFailToRegisterForRemoteNotificationsWithError error: any Error) {
-        Log.app.error("Failed to register for remote notifications: \(error.logSummary, privacy: .public) \(error.localizedDescription)")
+        Log.app.failure("Failed to register for remote notifications", error)
     }
 }
 #endif

@@ -15,7 +15,7 @@ struct CloudKitAccountStatusProvider: ICloudAccountStatusProvider {
             let status = try await CKContainer(identifier: RecipeStore.cloudKitContainerIdentifier).accountStatus()
             return Self.map(status)
         } catch {
-            Log.data.error("Checking the iCloud account failed: \(error.logSummary, privacy: .public) \(error.localizedDescription)")
+            Log.data.failure("Checking the iCloud account failed", error)
             return .couldNotDetermine
         }
     }

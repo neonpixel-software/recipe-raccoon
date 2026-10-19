@@ -23,6 +23,16 @@ final class MacAppDelegateTests: XCTestCase {
         XCTAssertEqual(registrations, 0)
     }
 
+    /// A failed registration is only logged.
+    func testAFailedRegistrationDoesNotRegisterAgain() {
+        var registrations = 0
+        let sut = MacAppDelegate(isICloudEnabled: true, registerForRemoteNotifications: { registrations += 1 })
+
+        sut.application(NSApplication.shared, didFailToRegisterForRemoteNotificationsWithError: CocoaError(.featureUnsupported))
+
+        XCTAssertEqual(registrations, 0)
+    }
+
     /// Like the store, the push registration stays off in the unit tests' host app (#160).
     func testTheTestHostDoesNotRegister() {
         XCTAssertTrue(RecipeRaccoonApp.isHostingUnitTests)

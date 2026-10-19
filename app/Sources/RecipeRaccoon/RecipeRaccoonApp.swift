@@ -46,12 +46,7 @@ struct RecipeRaccoonApp: App {
         webPageFetcher = URLSessionWebPageFetcher()
         captureRecipeUseCase = DefaultCaptureRecipeUseCase(captureService: captureService)
         checkCaptureAvailabilityUseCase = DefaultCheckCaptureAvailabilityUseCase(captureService: captureService)
-        do {
-            densityContainer = try Self.makeDensityContainer()
-        } catch {
-            Log.app.error("Failed to open the density cache: \(error.logSummary, privacy: .public) \(error.localizedDescription)")
-            densityContainer = nil
-        }
+        densityContainer = Log.app.attempt("Failed to open the density cache") { try Self.makeDensityContainer() }
         convertIngredientsToWeightUseCase = densityContainer.map {
             DefaultConvertIngredientsToWeightUseCase(cacheRepository: SwiftDataDensityCacheRepository(modelContext: $0.mainContext))
         }
@@ -220,7 +215,7 @@ struct RecipeRaccoonApp: App {
                         do {
                             try await refreshDensityCacheUseCase.executeIfStale()
                         } catch {
-                            Log.app.error("Refreshing ingredient densities failed: \(error.logSummary, privacy: .public) \(error.localizedDescription)")
+                            Log.app.failure("Refreshing ingredient densities failed", error)
                         }
                     }
                 }

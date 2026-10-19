@@ -126,10 +126,6 @@ final class PersistenceController: StorageModeSwitcher {
     }
 
     private func deduplicateTags(in context: ModelContext) {
-        do {
-            try context.deduplicateTags()
-        } catch {
-            Log.data.error("Failed to merge duplicate tags: \(error.logSummary, privacy: .public) \(error.localizedDescription)")
-        }
+        Log.data.attempt("Failed to merge duplicate tags") { try context.deduplicateTags() }
     }
 }

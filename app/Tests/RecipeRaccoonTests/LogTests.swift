@@ -17,4 +17,15 @@ final class LogTests: XCTestCase {
         XCTAssertTrue(error.logSummary.hasPrefix("WebPageFetchError RecipeRaccoon.WebPageFetchError "), error.logSummary)
         XCTAssertFalse(error.logSummary.contains("example.com"), error.logSummary)
     }
+
+    func testAttemptReturnsTheResultWhenNothingThrows() {
+        XCTAssertEqual(Log.data.attempt("Reading") { 42 }, 42)
+    }
+
+    /// The failure is logged and the caller carries on with nil, as the app's error paths do.
+    func testAttemptReturnsNilWhenTheBodyThrows() {
+        let result: Int? = Log.data.attempt("Reading") { throw CocoaError(.fileReadNoSuchFile) }
+
+        XCTAssertNil(result)
+    }
 }
