@@ -23,7 +23,7 @@ final class WebKitWebPageHTMLLoader: WebPageHTMLLoader {
         configuration.websiteDataStore = .nonPersistent()
         try await configuration.userContentController.add(WebPageContentRules.ruleList())
         let webView = WKWebView(frame: .zero, configuration: configuration)
-        let waiter = PageLoadWaiter()
+        let waiter = PageLoadWaiter(siteHost: url.host())
         webView.navigationDelegate = waiter
         defer { webView.stopLoading() }
 
@@ -43,11 +43,16 @@ final class WebKitWebPageHTMLLoader: WebPageHTMLLoader {
 
 /// Waits for the web view to finish a page that isn't an error page. A bot check's page has an
 /// error status and moves on by itself, so it's skipped; one that never moves on runs into the
-/// timeout and counts as blocked.
+/// timeout and counts as blocked. Navigation is limited by WebPageNavigationPolicy.
 @MainActor
 private final class PageLoadWaiter: NSObject, WKNavigationDelegate {
+    private let siteHost: String?
     private var continuation: CheckedContinuation<Void, Error>?
     private var isErrorPage = false
+
+    init(siteHost: String?) {
+        self.siteHost = siteHost
+    }
 
     func waitForPage(timeout: Duration) async throws {
         try await withCheckedThrowingContinuation { continuation in
@@ -59,7 +64,19 @@ private final class PageLoadWaiter: NSObject, WKNavigationDelegate {
         }
     }
 
+    func webView(_: WKWebView, decidePolicyFor navigationAction: WKNavigationAction) async -> WKNavigationActionPolicy {
+        let isMainFrame = navigationAction.targetFrame?.isMainFrame ?? true
+        return WebPageNavigationPolicy.allows(navigationAction.request.url, isMainFrame: isMainFrame, siteHost: siteHost) ? .allow : .cancel
+    }
+
     func webView(_: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse) async -> WKNavigationResponsePolicy {
+        guard WebPageNavigationPolicy.allows(
+            navigationResponse.response.url,
+            isMainFrame: navigationResponse.isForMainFrame,
+            siteHost: siteHost
+        ) else {
+            return .cancel
+        }
         if navigationResponse.isForMainFrame {
             isErrorPage = (try? WebPageTextDecoding.validateStatus(of: navigationResponse.response)) == nil
         }
