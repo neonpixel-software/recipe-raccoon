@@ -14,6 +14,7 @@ final class RecipeListViewModel {
         let deleteRecipeUseCase: DeleteRecipeUseCase
         let fetchTagsUseCase: FetchTagsUseCase
         let findOrCreateTagUseCase: FindOrCreateTagUseCase
+        let deleteTagUseCase: DeleteTagUseCase
         let captureRecipeUseCase: CaptureRecipeUseCase
         let checkCaptureAvailabilityUseCase: CheckCaptureAvailabilityUseCase
         let captureRecipeFromURLUseCase: CaptureRecipeFromURLUseCase
@@ -99,6 +100,20 @@ final class RecipeListViewModel {
             recipes.removeAll { $0.id == recipe.id }
             errorMessage = nil
             // Deleting a recipe deletes the custom tags only it used (#211).
+            loadTags()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    /// Long-press (right-click on the Mac) on a custom tag in the filter row: the tag goes, and
+    /// the recipes that had it stay. Presets can't be deleted.
+    func deleteTag(_ tag: Tag) {
+        guard !tag.isPreset else { return }
+        do {
+            try dependencies.deleteTagUseCase.execute(id: tag.id)
+            errorMessage = nil
+            load()
             loadTags()
         } catch {
             errorMessage = error.localizedDescription

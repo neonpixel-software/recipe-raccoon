@@ -162,6 +162,7 @@ struct RecipeRaccoonApp: App {
             deleteRecipeUseCase: DefaultDeleteRecipeUseCase(repository: recipeRepository),
             fetchTagsUseCase: DefaultFetchTagsUseCase(repository: tagRepository),
             findOrCreateTagUseCase: DefaultFindOrCreateTagUseCase(repository: tagRepository),
+            deleteTagUseCase: DefaultDeleteTagUseCase(repository: tagRepository),
             captureRecipeUseCase: captureRecipeUseCase,
             checkCaptureAvailabilityUseCase: checkCaptureAvailabilityUseCase,
             captureRecipeFromURLUseCase: DefaultCaptureRecipeFromURLUseCase(

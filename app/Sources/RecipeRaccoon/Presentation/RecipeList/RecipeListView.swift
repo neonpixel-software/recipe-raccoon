@@ -12,6 +12,8 @@ struct RecipeListView: View {
     @State private var pendingCaptureReview: Recipe?
     @State private var pendingURLCaptureReview: Recipe?
     @State private var reviewingCapturedRecipe: Recipe?
+    /// The tag whose Delete Tag was picked, until the confirmation is answered.
+    @State private var tagPendingDeletion: Tag?
 
     @State private var isPresentingSettings = false
     /// Shown from a toolbar button on iOS/iPadOS; macOS has its own Settings window (⌘,).
@@ -45,8 +47,23 @@ struct RecipeListView: View {
                     TagFilterRow(
                         tags: viewModel.allTags,
                         selectedTagID: viewModel.selectedTagID,
-                        onSelect: { viewModel.selectTag($0) }
+                        onSelect: { viewModel.selectTag($0) },
+                        onDelete: { tagPendingDeletion = $0 }
                     )
+                    .confirmationDialog(
+                        Text("Delete “\(tagPendingDeletion?.name ?? "")”?"),
+                        isPresented: Binding(
+                            get: { tagPendingDeletion != nil },
+                            set: { if !$0 { tagPendingDeletion = nil } }
+                        ),
+                        titleVisibility: .visible,
+                        presenting: tagPendingDeletion
+                    ) { tag in
+                        Button("Delete", role: .destructive) { viewModel.deleteTag(tag) }
+                        Button("Cancel", role: .cancel) { /* no-op: the dialog dismisses on its own */ }
+                    } message: { _ in
+                        Text("The tag comes off every recipe that has it. The recipes stay.")
+                    }
                 }
 
                 Group {
@@ -353,6 +370,7 @@ struct RecipeCoverThumbnail: View {
         deleteRecipeUseCase: DefaultDeleteRecipeUseCase(repository: PreviewRecipeRepository()),
         fetchTagsUseCase: DefaultFetchTagsUseCase(repository: PreviewTagRepository()),
         findOrCreateTagUseCase: DefaultFindOrCreateTagUseCase(repository: PreviewTagRepository()),
+        deleteTagUseCase: DefaultDeleteTagUseCase(repository: PreviewTagRepository()),
         captureRecipeUseCase: DefaultCaptureRecipeUseCase(captureService: PreviewRecipeCaptureService()),
         checkCaptureAvailabilityUseCase: DefaultCheckCaptureAvailabilityUseCase(captureService: PreviewRecipeCaptureService()),
         captureRecipeFromURLUseCase: DefaultCaptureRecipeFromURLUseCase(

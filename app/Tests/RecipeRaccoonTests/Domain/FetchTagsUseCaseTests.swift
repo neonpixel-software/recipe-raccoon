@@ -11,6 +11,8 @@ private struct FakeTagRepository: TagRepository {
     func findOrCreate(name: String) throws -> Tag {
         Tag(id: UUID(), name: name, isPreset: false)
     }
+
+    func delete(id _: UUID) throws {}
 }
 
 private struct RepositoryFailure: Error, Equatable {}

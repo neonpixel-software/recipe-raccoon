@@ -39,6 +39,16 @@ private struct NoOpFindOrCreateTagUseCase: FindOrCreateTagUseCase {
     }
 }
 
+private final class FakeDeleteTagUseCase: DeleteTagUseCase {
+    var result: Result<Void, Error> = .success(())
+    private(set) var deletedIDs: [UUID] = []
+
+    func execute(id: UUID) throws {
+        deletedIDs.append(id)
+        try result.get()
+    }
+}
+
 private struct NoOpCaptureRecipeUseCase: CaptureRecipeUseCase {
     func execute(text _: String) async throws -> Recipe {
         Recipe(id: UUID(), title: "", ingredients: [], steps: [], source: .typed, tags: [])
@@ -64,6 +74,7 @@ private func makeViewModel(
     fetchResult: Result<[Recipe], Error> = .success([]),
     deleteResult: Result<Void, Error> = .success(()),
     fetchTagsResult: Result<[Tag], Error> = .success([]),
+    deleteTag: DeleteTagUseCase = FakeDeleteTagUseCase(),
     captureAvailable: Bool = true,
     thumbnails: FetchPhotoThumbnailUseCase = StubFetchPhotoThumbnailUseCase()
 ) -> RecipeListViewModel {
@@ -74,6 +85,7 @@ private func makeViewModel(
         deleteRecipeUseCase: FakeDeleteRecipeUseCase(result: deleteResult),
         fetchTagsUseCase: FakeFetchTagsUseCase(result: fetchTagsResult),
         findOrCreateTagUseCase: NoOpFindOrCreateTagUseCase(),
+        deleteTagUseCase: deleteTag,
         captureRecipeUseCase: NoOpCaptureRecipeUseCase(),
         checkCaptureAvailabilityUseCase: FakeCheckCaptureAvailabilityUseCase(result: captureAvailable),
         captureRecipeFromURLUseCase: NoOpCaptureRecipeFromURLUseCase(),
@@ -119,6 +131,7 @@ final class RecipeListViewModelTests: XCTestCase {
             deleteRecipeUseCase: FakeDeleteRecipeUseCase(),
             fetchTagsUseCase: FakeFetchTagsUseCase(),
             findOrCreateTagUseCase: NoOpFindOrCreateTagUseCase(),
+            deleteTagUseCase: FakeDeleteTagUseCase(),
             captureRecipeUseCase: NoOpCaptureRecipeUseCase(),
             checkCaptureAvailabilityUseCase: FakeCheckCaptureAvailabilityUseCase(),
             captureRecipeFromURLUseCase: NoOpCaptureRecipeFromURLUseCase(),
@@ -157,6 +170,40 @@ final class RecipeListViewModelTests: XCTestCase {
         viewModel.delete(recipe)
 
         XCTAssertEqual(viewModel.allTags, [remaining])
+    }
+
+    func testDeleteTagDeletesACustomTagAndReloads() {
+        let tag = Tag(id: UUID(), name: "Desert", isPreset: false)
+        let recipe = Recipe(id: UUID(), title: "Pie", ingredients: [], steps: [], source: .typed, tags: [])
+        let remaining = Tag(id: UUID(), name: "Dessert", isPreset: true)
+        let deleteTag = FakeDeleteTagUseCase()
+        let viewModel = makeViewModel(fetchResult: .success([recipe]), fetchTagsResult: .success([remaining]), deleteTag: deleteTag)
+
+        viewModel.deleteTag(tag)
+
+        XCTAssertEqual(deleteTag.deletedIDs, [tag.id])
+        XCTAssertEqual(viewModel.recipes, [recipe])
+        XCTAssertEqual(viewModel.allTags, [remaining])
+        XCTAssertNil(viewModel.errorMessage)
+    }
+
+    func testDeleteTagNeverDeletesAPreset() {
+        let deleteTag = FakeDeleteTagUseCase()
+        let viewModel = makeViewModel(deleteTag: deleteTag)
+
+        viewModel.deleteTag(Tag(id: UUID(), name: "Dinner", isPreset: true))
+
+        XCTAssertEqual(deleteTag.deletedIDs, [])
+    }
+
+    func testDeleteTagSetsErrorMessageOnFailure() {
+        let deleteTag = FakeDeleteTagUseCase()
+        deleteTag.result = .failure(UseCaseFailure())
+        let viewModel = makeViewModel(deleteTag: deleteTag)
+
+        viewModel.deleteTag(Tag(id: UUID(), name: "Desert", isPreset: false))
+
+        XCTAssertEqual(viewModel.errorMessage, "Something went wrong")
     }
 
     func testDeleteSetsErrorMessageOnFailureAndKeepsRecipe() {

@@ -35,4 +35,11 @@ final class SwiftDataTagRepository: TagRepository {
         try modelContext.save()
         return model.toDomain()
     }
+
+    func delete(id: UUID) throws {
+        let descriptor = FetchDescriptor<TagModel>(predicate: #Predicate { $0.id == id })
+        guard let model = try modelContext.fetch(descriptor).first, !model.isPreset else { return }
+        modelContext.delete(model)
+        try modelContext.save()
+    }
 }
