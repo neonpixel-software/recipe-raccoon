@@ -11,8 +11,6 @@ import FoundationModels
 /// device with Apple Intelligence. DefaultSuggestTagsUseCase, which maps its answer to tags,
 /// is tested.
 final class FoundationModelsTagSuggestionService: TagSuggestionService {
-    static let maximumTags = 3
-
     func suggestTags(title: String, ingredients: [String], from tagNames: [String]) async throws -> [String] {
         guard !tagNames.isEmpty else { return [] }
         let schema = try GenerationSchema(
@@ -23,7 +21,7 @@ final class FoundationModelsTagSuggestionService: TagSuggestionService {
                     schema: DynamicGenerationSchema(
                         arrayOf: DynamicGenerationSchema(name: "Tag", anyOf: tagNames),
                         minimumElements: 0,
-                        maximumElements: Self.maximumTags
+                        maximumElements: DefaultSuggestTagsUseCase.maximumTags
                     )
                 ),
             ]),

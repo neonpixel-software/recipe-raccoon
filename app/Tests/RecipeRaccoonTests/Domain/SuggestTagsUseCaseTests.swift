@@ -68,6 +68,17 @@ final class SuggestTagsUseCaseTests: XCTestCase {
         XCTAssertEqual(tags, [baking, breakfast])
     }
 
+    /// The cap holds even for a service that ignores it.
+    func testKeepsAtMostThreeTags() async {
+        let lunch = Tag(id: UUID(), name: "Lunch", isPreset: true)
+        let service = FakeTagSuggestionService()
+        service.result = .success(["Breakfast", "Lunch", "Dessert", "Baking"])
+
+        let tags = await makeUseCase(tags: .success([breakfast, lunch, dessert, baking]), service: service).execute(for: makeRecipe())
+
+        XCTAssertEqual(tags, [breakfast, lunch, dessert])
+    }
+
     func testDoesntAskWhenThereAreNoTags() async {
         let service = FakeTagSuggestionService()
 

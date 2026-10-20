@@ -10,6 +10,9 @@ protocol SuggestTagsUseCase {
 
 @MainActor
 final class DefaultSuggestTagsUseCase: SuggestTagsUseCase {
+    /// At most this many tags start selected, whatever the service answers.
+    nonisolated static let maximumTags = 3
+
     private let fetchTagsUseCase: FetchTagsUseCase
     private let suggestionService: TagSuggestionService
 
@@ -34,7 +37,7 @@ final class DefaultSuggestTagsUseCase: SuggestTagsUseCase {
                     suggested.append(tag)
                 }
             }
-            return suggested
+            return Array(suggested.prefix(Self.maximumTags))
         } catch {
             Log.domain.failure("Couldn't suggest tags", error)
             return []
