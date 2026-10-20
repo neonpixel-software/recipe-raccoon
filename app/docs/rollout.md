@@ -118,7 +118,8 @@ guide are translated, with no English left over and nothing cut off.
 
 1. TestFlight → External Testing: add a group and the build. The first build needs Beta App
    Review, so fill in Test Information: what to test (the capture paths, Weight, iCloud), a
-   feedback email, and that no sign-in is needed. iOS and macOS are reviewed separately.
+   feedback email, and that no sign-in is needed. iOS and macOS are reviewed separately. The
+   texts are below, under Test Information.
 2. Invite testers, ideally with different devices, including some without Apple Intelligence and
    some writing recipes in Spanish, French, German or Dutch.
 3. Run the beta for about a week. Each day, check TestFlight feedback and crashes (App Store
@@ -126,13 +127,56 @@ guide are translated, with no English left over and nothing cut off.
 
 **Gate:** no crash or data loss left open, and the feedback has nothing that blocks release.
 
+### Test Information
+
+The texts used for 1.0.3, ready to paste. They're in English; TestFlight can take localized
+versions too. Update What to Test when a build has something new to try.
+
+**Beta App Description**
+
+> Recipe Raccoon is a recipe box without the fluff: no ads, no life stories, just the recipe. Paste
+> a link to a recipe site or type a recipe in, and Apple Intelligence sorts it into ingredients,
+> equipment and steps on your device. Add photos and tags, switch ingredients to grams, and sync
+> your recipes through your own iCloud if you like. Available in English, Spanish, French, German
+> and Dutch.
+
+**What to Test**
+
+> Thanks for testing! Please try:
+> - **Paste a Link:** recipes from sites you actually use, especially big recipe sites and blogs.
+>   Tell us if one fails or comes out wrong (missing ingredients, mixed-up steps).
+> - **Type It:** paste or type a recipe as plain text, for example from a message or a note.
+> - **Enter Manually,** editing a recipe, photos (library and camera) and tags.
+> - **Weight:** switch an ingredient list from cups and spoons to grams. Tell us about ingredients
+>   it doesn't know.
+> - **iCloud:** turn it on in Settings with two devices on the same Apple Account. Recipes, edits,
+>   photos and deletes should show up on the other device.
+> - **Your language:** if your device is set to Spanish, French, German or Dutch, look out for
+>   wrong or awkward translations.
+>
+> Paste a Link and Type It need a device with Apple Intelligence turned on; without it, you can
+> still enter recipes by hand. Send feedback with a screenshot from TestFlight (take a screenshot
+> in the app and tap Share Beta Feedback), or open an issue at
+> https://github.com/neonpixel-software/recipe-raccoon/issues.
+
+**Privacy Policy URL:** https://github.com/neonpixel-software/recipe-raccoon/blob/main/PRIVACY.md
+
+**Beta App Review Information:** sign-in not required, the owner's contact details, and these
+notes (also the App Review notes in Stage 3):
+
+> No account or sign-in. Paste a Link and Type It use Apple Intelligence on the device (Foundation
+> Models), so on a device without Apple Intelligence the app explains that these aren't available
+> and offers Enter Manually instead. iCloud sync is optional and off by default (Settings →
+> Storage); recipes are stored on the device otherwise. To try Paste a Link, use any recipe page,
+> for example https://www.allrecipes.com/recipe/21014/good-old-fashioned-pancakes/.
+
 ## Stage 3: App Review
 
 For each platform (iOS covers iPadOS), in the version's page:
 1. Select the tested build.
 2. **App Review Information:** no sign-in. In the notes, explain that Type It and Paste a Link use
    Apple Intelligence on the device, so a device without it only offers Enter Manually, and that
-   iCloud sync is optional and off by default.
+   iCloud sync is optional and off by default. The Beta App Review notes in Stage 2 say this.
 3. **Version Release:** *Manually release this version*, so all three platforms can go live
    together.
 4. Submit for Review.
