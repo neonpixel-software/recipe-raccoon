@@ -12,6 +12,21 @@ private struct FakeCaptureRecipeFromURLUseCase: CaptureRecipeFromURLUseCase {
 private struct AICaptureFailure: Error, Equatable {}
 
 @MainActor
+private final class FakeSuggestTagsUseCase: SuggestTagsUseCase {
+    let tags: [Tag]
+    private(set) var requestedTitles: [String] = []
+
+    init(tags: [Tag]) {
+        self.tags = tags
+    }
+
+    func execute(for recipe: Recipe) async -> [Tag] {
+        requestedTitles.append(recipe.title)
+        return tags
+    }
+}
+
+@MainActor
 final class RecipeURLCaptureViewModelTests: XCTestCase {
     func testCanCaptureIsFalseWhenURLTextIsBlankOrWhitespace() {
         let viewModel = RecipeURLCaptureViewModel(captureRecipeFromURLUseCase: FakeCaptureRecipeFromURLUseCase(result: .success(makeRecipe())))
@@ -110,6 +125,33 @@ final class RecipeURLCaptureViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.errorMessage, "Couldn't find a recipe on that page. Check it over and try again.")
         XCTAssertEqual(viewModel.urlText, "https://example.com/recipe")
         XCTAssertFalse(viewModel.isCapturing)
+    }
+
+    func testCaptureStartsTheRecipeWithTheSuggestedTags() async {
+        let breakfast = Tag(id: UUID(), name: "Breakfast", isPreset: true)
+        let recipe = makeRecipe(title: "Pancakes")
+        let suggest = FakeSuggestTagsUseCase(tags: [breakfast])
+        let viewModel = RecipeURLCaptureViewModel(captureRecipeFromURLUseCase: FakeCaptureRecipeFromURLUseCase(result: .success(recipe)), suggestTagsUseCase: suggest)
+        viewModel.urlText = "https://example.com/recipe"
+
+        let result = await viewModel.capture()
+
+        XCTAssertEqual(result?.tags, [breakfast])
+        XCTAssertEqual(suggest.requestedTitles, ["Pancakes"])
+    }
+
+    func testCaptureKeepsTagsTheRecipeAlreadyHas() async {
+        let dinner = Tag(id: UUID(), name: "Dinner", isPreset: true)
+        var recipe = makeRecipe(title: "Stew")
+        recipe.tags = [dinner]
+        let suggest = FakeSuggestTagsUseCase(tags: [Tag(id: UUID(), name: "Lunch", isPreset: true)])
+        let viewModel = RecipeURLCaptureViewModel(captureRecipeFromURLUseCase: FakeCaptureRecipeFromURLUseCase(result: .success(recipe)), suggestTagsUseCase: suggest)
+        viewModel.urlText = "https://example.com/recipe"
+
+        let result = await viewModel.capture()
+
+        XCTAssertEqual(result?.tags, [dinner])
+        XCTAssertEqual(suggest.requestedTitles, [])
     }
 
     private func makeRecipe(title: String = "") -> Recipe {

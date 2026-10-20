@@ -18,6 +18,7 @@ final class RecipeListViewModel {
         let captureRecipeUseCase: CaptureRecipeUseCase
         let checkCaptureAvailabilityUseCase: CheckCaptureAvailabilityUseCase
         let captureRecipeFromURLUseCase: CaptureRecipeFromURLUseCase
+        let suggestTagsUseCase: SuggestTagsUseCase
         let fetchPhotoThumbnailUseCase: FetchPhotoThumbnailUseCase
         let fetchPhotoImageUseCase: FetchPhotoImageUseCase
         let photoProcessor: PhotoProcessor
@@ -141,11 +142,14 @@ final class RecipeListViewModel {
 
     @MainActor
     func makeCaptureViewModel() -> RecipeCaptureViewModel {
-        RecipeCaptureViewModel(captureRecipeUseCase: dependencies.captureRecipeUseCase)
+        RecipeCaptureViewModel(captureRecipeUseCase: dependencies.captureRecipeUseCase, suggestTagsUseCase: dependencies.suggestTagsUseCase)
     }
 
     @MainActor
     func makeURLCaptureViewModel() -> RecipeURLCaptureViewModel {
-        RecipeURLCaptureViewModel(captureRecipeFromURLUseCase: dependencies.captureRecipeFromURLUseCase)
+        RecipeURLCaptureViewModel(
+            captureRecipeFromURLUseCase: dependencies.captureRecipeFromURLUseCase,
+            suggestTagsUseCase: dependencies.suggestTagsUseCase
+        )
     }
 }

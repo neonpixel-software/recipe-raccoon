@@ -9,9 +9,12 @@ final class RecipeURLCaptureViewModel {
     private(set) var errorMessage: String?
 
     private let captureRecipeFromURLUseCase: CaptureRecipeFromURLUseCase
+    /// Picks the tags the review screen starts with selected; nil starts it with none.
+    private let suggestTagsUseCase: SuggestTagsUseCase?
 
-    init(captureRecipeFromURLUseCase: CaptureRecipeFromURLUseCase) {
+    init(captureRecipeFromURLUseCase: CaptureRecipeFromURLUseCase, suggestTagsUseCase: SuggestTagsUseCase? = nil) {
         self.captureRecipeFromURLUseCase = captureRecipeFromURLUseCase
+        self.suggestTagsUseCase = suggestTagsUseCase
     }
 
     var canCapture: Bool {
@@ -26,7 +29,10 @@ final class RecipeURLCaptureViewModel {
         defer { isCapturing = false }
 
         do {
-            let recipe = try await captureRecipeFromURLUseCase.execute(urlString: urlText)
+            var recipe = try await captureRecipeFromURLUseCase.execute(urlString: urlText)
+            if recipe.tags.isEmpty, let suggestTagsUseCase {
+                recipe.tags = await suggestTagsUseCase.execute(for: recipe)
+            }
             errorMessage = nil
             return recipe
         } catch {

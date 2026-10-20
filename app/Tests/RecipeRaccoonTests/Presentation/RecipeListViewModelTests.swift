@@ -49,6 +49,11 @@ private final class FakeDeleteTagUseCase: DeleteTagUseCase {
     }
 }
 
+@MainActor
+private struct NoOpSuggestTagsUseCase: SuggestTagsUseCase {
+    func execute(for _: Recipe) async -> [Tag] { [] }
+}
+
 private struct NoOpCaptureRecipeUseCase: CaptureRecipeUseCase {
     func execute(text _: String) async throws -> Recipe {
         Recipe(id: UUID(), title: "", ingredients: [], steps: [], source: .typed, tags: [])
@@ -89,6 +94,7 @@ private func makeViewModel(
         captureRecipeUseCase: NoOpCaptureRecipeUseCase(),
         checkCaptureAvailabilityUseCase: FakeCheckCaptureAvailabilityUseCase(result: captureAvailable),
         captureRecipeFromURLUseCase: NoOpCaptureRecipeFromURLUseCase(),
+        suggestTagsUseCase: NoOpSuggestTagsUseCase(),
         fetchPhotoThumbnailUseCase: thumbnails,
         fetchPhotoImageUseCase: StubFetchPhotoImageUseCase(),
         photoProcessor: FakePhotoProcessor()
@@ -135,6 +141,7 @@ final class RecipeListViewModelTests: XCTestCase {
             captureRecipeUseCase: NoOpCaptureRecipeUseCase(),
             checkCaptureAvailabilityUseCase: FakeCheckCaptureAvailabilityUseCase(),
             captureRecipeFromURLUseCase: NoOpCaptureRecipeFromURLUseCase(),
+            suggestTagsUseCase: NoOpSuggestTagsUseCase(),
             fetchPhotoThumbnailUseCase: StubFetchPhotoThumbnailUseCase(),
             fetchPhotoImageUseCase: StubFetchPhotoImageUseCase(),
             photoProcessor: FakePhotoProcessor()

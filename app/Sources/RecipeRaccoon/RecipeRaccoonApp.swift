@@ -110,6 +110,10 @@ struct RecipeRaccoonApp: App {
         uiTestScenario?.treatsCaptureAsAvailable == true ? PreviewRecipeCaptureService() : FoundationModelsRecipeCaptureService()
     }
 
+    private static func makeTagSuggestionService() -> TagSuggestionService {
+        uiTestScenario?.treatsCaptureAsAvailable == true ? PreviewTagSuggestionService() : FoundationModelsTagSuggestionService()
+    }
+
     @MainActor
     private static func makeDensityContainer() throws -> ModelContainer {
         try uiTestScenario?.makeDensityContainer() ?? DensityStore.makeContainer()
@@ -145,6 +149,10 @@ struct RecipeRaccoonApp: App {
         FoundationModelsRecipeCaptureService()
     }
 
+    private static func makeTagSuggestionService() -> TagSuggestionService {
+        FoundationModelsTagSuggestionService()
+    }
+
     private static func makeDensityContainer() throws -> ModelContainer {
         try DensityStore.makeContainer()
     }
@@ -168,6 +176,10 @@ struct RecipeRaccoonApp: App {
             captureRecipeFromURLUseCase: DefaultCaptureRecipeFromURLUseCase(
                 webPageFetcher: webPageFetcher,
                 captureRecipeUseCase: captureRecipeUseCase
+            ),
+            suggestTagsUseCase: DefaultSuggestTagsUseCase(
+                fetchTagsUseCase: DefaultFetchTagsUseCase(repository: tagRepository),
+                suggestionService: Self.makeTagSuggestionService()
             ),
             fetchPhotoThumbnailUseCase: DefaultFetchPhotoThumbnailUseCase(repository: photoRepository),
             fetchPhotoImageUseCase: DefaultFetchPhotoImageUseCase(repository: photoRepository),
