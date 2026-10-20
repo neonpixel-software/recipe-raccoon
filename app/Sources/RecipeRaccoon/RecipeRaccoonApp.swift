@@ -43,7 +43,10 @@ struct RecipeRaccoonApp: App {
         photoRepository = SwiftDataRecipePhotoRepository(modelContext: contextProvider.context)
         let captureService = Self.makeCaptureService()
         self.captureService = captureService
-        webPageFetcher = URLSessionWebPageFetcher()
+        webPageFetcher = DefaultWebPageFetcher(
+            directLoader: URLSessionWebPageHTMLLoader(),
+            browserLoader: WebKitWebPageHTMLLoader()
+        )
         captureRecipeUseCase = DefaultCaptureRecipeUseCase(captureService: captureService)
         checkCaptureAvailabilityUseCase = DefaultCheckCaptureAvailabilityUseCase(captureService: captureService)
         densityContainer = Log.app.attempt("Failed to open the density cache") { try Self.makeDensityContainer() }

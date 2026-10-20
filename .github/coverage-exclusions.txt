@@ -6,7 +6,8 @@
 # SonarCloud would otherwise count the gate script's Python as uncovered new code.
 app/Sources/RecipeRaccoon/Data/DevSupport/**
 app/Sources/RecipeRaccoon/Data/Capture/FoundationModelsRecipeCaptureService.swift
-app/Sources/RecipeRaccoon/Data/Capture/URLSessionWebPageFetcher.swift
+app/Sources/RecipeRaccoon/Data/Capture/URLSessionWebPageHTMLLoader.swift
+app/Sources/RecipeRaccoon/Data/Capture/WebKitWebPageHTMLLoader.swift
 app/Sources/RecipeRaccoon/Presentation/RecipeForm/CameraPicker.swift
 api/src/RecipeRaccoon.DensityApi.Api/Program.cs
 api/src/RecipeRaccoon.DensityApi.Seed/Program.cs
