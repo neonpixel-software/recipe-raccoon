@@ -107,6 +107,8 @@ final class RecipeFormViewModel {
     typealias PhotoLoader = @Sendable () async throws -> Data?
 
     var title: String
+    /// nil shows "Set Servings"; a number shows the stepper (Recipe.servingsRange).
+    private(set) var servings: Int?
     var ingredients: [IngredientLineDraft]
     var equipment: [EquipmentDraft]
     var steps: [StepDraft]
@@ -132,6 +134,7 @@ final class RecipeFormViewModel {
         switch mode {
         case .create:
             title = ""
+            servings = nil
             ingredients = []
             equipment = []
             steps = []
@@ -139,6 +142,7 @@ final class RecipeFormViewModel {
             photos = []
         case let .edit(recipe), let .capture(recipe):
             title = recipe.title
+            servings = recipe.servings
             ingredients = recipe.ingredients.map { IngredientLineDraft(ingredientLine: $0) }
             equipment = recipe.equipment.map { EquipmentDraft(name: $0) }
             steps = recipe.steps.map { StepDraft(text: $0) }
@@ -154,6 +158,22 @@ final class RecipeFormViewModel {
 
     var isProcessingPhotos: Bool {
         photos.contains { $0.state == .processing }
+    }
+
+    /// The number "Set Servings" starts the stepper at.
+    static let defaultServings = 4
+
+    func setServings() {
+        servings = Self.defaultServings
+    }
+
+    /// Clamped to Recipe.servingsRange.
+    func changeServings(to value: Int) {
+        servings = min(max(value, Recipe.servingsRange.lowerBound), Recipe.servingsRange.upperBound)
+    }
+
+    func clearServings() {
+        servings = nil
     }
 
     func addIngredient() {
@@ -404,6 +424,7 @@ final class RecipeFormViewModel {
         return Recipe(
             id: id,
             title: trimmedTitle,
+            servings: servings,
             ingredients: builtIngredients,
             equipment: builtEquipment,
             steps: builtSteps,

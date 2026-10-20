@@ -20,6 +20,7 @@ syncs. So first fill in every field once:
    `Signing.xcconfig`) on a real device: PLAN 4.1 explains why the simulator can't sync while the
    Apple Account has Advanced Data Protection. Add one recipe that sets every synced field:
    - from **Paste a Link**, so it has a `sourceURL`
+   - with servings set
    - with an ingredient that has an amount, a unit and a name (e.g. "2 cups flour")
    - with equipment, steps, a preset tag and a custom tag
    - with two photos, so the image and thumbnail data and positions sync
@@ -30,7 +31,7 @@ syncs. So first fill in every field once:
 
    | Record type | Fields |
    |---|---|
-   | `CD_RecipeModel` | `CD_id`, `CD_title`, `CD_steps`, `CD_equipment`, `CD_isTypedSource`, `CD_sourceURL` |
+   | `CD_RecipeModel` | `CD_id`, `CD_title`, `CD_servings`, `CD_steps`, `CD_equipment`, `CD_isTypedSource`, `CD_sourceURL` |
    | `CD_IngredientLineModel` | `CD_id`, `CD_rawText`, `CD_amount`, `CD_unit`, `CD_ingredientName`, `CD_position`, `CD_recipe` |
    | `CD_TagModel` | `CD_id`, `CD_name`, `CD_isPreset` |
    | `CD_RecipePhotoModel` | `CD_id`, `CD_position`, `CD_imageData`, `CD_imageData_ckAsset`, `CD_thumbnailData`, `CD_thumbnailData_ckAsset`, `CD_recipe` |

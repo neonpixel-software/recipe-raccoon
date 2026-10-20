@@ -5,6 +5,8 @@ import SwiftData
 final class RecipeModel {
     var id: UUID = UUID()
     var title: String = ""
+    /// Optional, so rows saved before servings existed (Phase 15) read as nil.
+    var servings: Int?
     var steps: [String] = []
     var equipment: [String] = []
     var isTypedSource: Bool = false
@@ -16,6 +18,7 @@ final class RecipeModel {
     init(
         id: UUID = UUID(),
         title: String,
+        servings: Int? = nil,
         steps: [String],
         equipment: [String] = [],
         isTypedSource: Bool,
@@ -26,6 +29,7 @@ final class RecipeModel {
     ) {
         self.id = id
         self.title = title
+        self.servings = servings
         self.steps = steps
         self.equipment = equipment
         self.isTypedSource = isTypedSource

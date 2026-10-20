@@ -6,6 +6,7 @@ extension RecipeModel {
         Recipe(
             id: id,
             title: title,
+            servings: validServings,
             ingredients: (ingredients ?? []).sorted { $0.position < $1.position }.map { $0.toDomain() },
             equipment: equipment,
             steps: steps,
@@ -35,6 +36,12 @@ extension RecipeModel {
         }
         return .typed
     }
+
+    /// Rows can arrive through CloudKit from other app versions, so a number outside
+    /// Recipe.servingsRange reads as unknown.
+    private var validServings: Int? {
+        servings.flatMap { Recipe.servingsRange.contains($0) ? $0 : nil }
+    }
 }
 
 extension Recipe {
@@ -56,6 +63,7 @@ extension Recipe {
         return RecipeModel(
             id: id,
             title: title,
+            servings: servings,
             steps: steps,
             equipment: equipment,
             isTypedSource: isTyped,
@@ -77,6 +85,7 @@ extension RecipeModel {
     /// `newPhotos` holds the bytes of photos that have no row yet (see replacePhotos).
     func overwrite(with recipe: Recipe, newPhotos: [UUID: ProcessedPhoto], in context: ModelContext) {
         title = recipe.title
+        servings = recipe.servings
         steps = recipe.steps
         equipment = recipe.equipment
         switch recipe.source {
