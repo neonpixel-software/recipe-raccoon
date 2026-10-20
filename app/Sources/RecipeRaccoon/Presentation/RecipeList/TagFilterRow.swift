@@ -5,6 +5,8 @@ struct TagFilterRow: View {
     let tags: [Tag]
     let selectedTagID: UUID?
     let onSelect: (UUID?) -> Void
+    /// Offered on a custom tag's long-press (right-click on the Mac) menu; presets have none.
+    var onDelete: ((Tag) -> Void)?
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -18,6 +20,7 @@ struct TagFilterRow: View {
                     }
                     // By the stored name, which for a preset is English in every language.
                     .accessibilityIdentifier("TagChip.\(tag.name)")
+                    .modifier(DeleteTagMenu(tag: tag, onDelete: onDelete))
                 }
             }
             .padding(.horizontal, 16)
@@ -29,5 +32,21 @@ struct TagFilterRow: View {
         // inside; .contain keeps each chip its own element.
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text("Filter by Tag"))
+    }
+}
+
+/// The long-press menu with Delete Tag, on custom tags only: an empty menu would still show.
+private struct DeleteTagMenu: ViewModifier {
+    let tag: Tag
+    let onDelete: ((Tag) -> Void)?
+
+    func body(content: Content) -> some View {
+        if let onDelete, !tag.isPreset {
+            content.contextMenu {
+                Button("Delete Tag", systemImage: "trash", role: .destructive) { onDelete(tag) }
+            }
+        } else {
+            content
+        }
     }
 }

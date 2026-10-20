@@ -11,6 +11,8 @@ private final class FakeTagRepository: TagRepository {
         requestedNames.append(name)
         return try findOrCreateResult.get()
     }
+
+    func delete(id _: UUID) throws {}
 }
 
 private struct RepositoryFailure: Error, Equatable {}

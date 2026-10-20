@@ -61,4 +61,32 @@ final class SwiftDataTagRepositoryTests: XCTestCase {
         let allTags = try repository.fetchAll()
         XCTAssertEqual(allTags, [tag])
     }
+
+    func testDeleteRemovesACustomTagFromItsRecipesAndKeepsThem() throws {
+        let context = try makeInMemoryContext()
+        let tagID = UUID()
+        let preset = TagModel(name: "Dinner", isPreset: true)
+        context.insert(RecipeModel(title: "Stew", steps: [], isTypedSource: true, tags: [TagModel(id: tagID, name: "Desert", isPreset: false), preset]))
+        try context.save()
+
+        let repository = SwiftDataTagRepository(modelContext: context)
+        try repository.delete(id: tagID)
+
+        XCTAssertEqual(try repository.fetchAll().map(\.name), ["Dinner"])
+        let recipe = try XCTUnwrap(context.fetch(FetchDescriptor<RecipeModel>()).first)
+        XCTAssertEqual(recipe.tags?.map(\.name), ["Dinner"])
+    }
+
+    func testDeleteLeavesAPresetAlone() throws {
+        let context = try makeInMemoryContext()
+        let presetID = UUID()
+        context.insert(TagModel(id: presetID, name: "Dinner", isPreset: true))
+        try context.save()
+
+        let repository = SwiftDataTagRepository(modelContext: context)
+        try repository.delete(id: presetID)
+        try repository.delete(id: UUID())
+
+        XCTAssertEqual(try repository.fetchAll().map(\.name), ["Dinner"])
+    }
 }
