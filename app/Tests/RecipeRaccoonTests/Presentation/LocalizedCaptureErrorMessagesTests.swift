@@ -1,7 +1,7 @@
 @testable import RecipeRaccoon
 import XCTest
 
-/// Verifies the String Catalog entries for the 5 capture-failure messages that
+/// Verifies the String Catalog entries for the 6 capture-failure messages that
 /// RecipeCaptureViewModel/RecipeURLCaptureViewModel assign via String(localized:) — reading the
 /// compiled catalog output directly per language (see LocalizationTestHelper) makes this
 /// deterministic regardless of the test process's own system language.
@@ -30,6 +30,12 @@ final class LocalizedCaptureErrorMessagesTests: XCTestCase {
             "fr": "Ce site n'utilise pas de connexion sécurisée (https) et ne peut donc pas être ouvert.",
             "de": "Diese Website verwendet keine sichere Verbindung (https) und kann daher nicht geöffnet werden.",
             "nl": "Die site gebruikt geen beveiligde verbinding (https) en kan daarom niet worden geopend.",
+        ],
+        "That site doesn't let apps read its pages. Copy the recipe from the site and paste it into Type It.": [
+            "es": "Ese sitio no deja que las apps lean sus páginas. Copia la receta del sitio y pégala en Escribirlo.",
+            "fr": "Ce site ne laisse pas les apps lire ses pages. Copiez la recette depuis le site et collez-la dans «\u{00A0}Le taper\u{00A0}».",
+            "de": "Diese Website lässt Apps ihre Seiten nicht lesen. Kopiere das Rezept von der Website und füge es bei Eingeben ein.",
+            "nl": "Die site laat apps haar pagina's niet lezen. Kopieer het recept van de site en plak het bij Typen.",
         ],
         "Couldn't find a recipe on that page. Check it over and try again.": [
             "es": "No se encontró ninguna receta en esa página. Revísala e inténtalo de nuevo.",

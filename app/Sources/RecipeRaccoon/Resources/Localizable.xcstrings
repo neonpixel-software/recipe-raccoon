@@ -1429,6 +1429,34 @@
         }
       }
     },
+    "That site doesn't let apps read its pages. Copy the recipe from the site and paste it into Type It.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ese sitio no deja que las apps lean sus páginas. Copia la receta del sitio y pégala en Escribirlo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce site ne laisse pas les apps lire ses pages. Copiez la recette depuis le site et collez-la dans « Le taper »."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Website lässt Apps ihre Seiten nicht lesen. Kopiere das Rezept von der Website und füge es bei Eingeben ein."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die site laat apps haar pagina's niet lezen. Kopieer het recept van de site en plak het bij Typen."
+          }
+        }
+      }
+    },
     "Filter by Tag": {
       "localizations": {
         "es": {

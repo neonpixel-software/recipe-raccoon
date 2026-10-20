@@ -35,6 +35,8 @@ final class RecipeURLCaptureViewModel {
                 errorMessage = String(localized: "That page is too large to read. Try a link to just the recipe.")
             } else if case WebPageFetchError.insecureConnection = error {
                 errorMessage = String(localized: "That site doesn't use a secure connection (https), so it can't be opened.")
+            } else if case WebPageFetchError.blockedByBotCheck = error {
+                errorMessage = String(localized: "That site doesn't let apps read its pages. Copy the recipe from the site and paste it into Type It.")
             } else if error is WebPageFetchError {
                 errorMessage = String(localized: "Couldn't load that page. Check the link and try again.")
             } else {

@@ -11,4 +11,6 @@ enum WebPageFetchError: Error {
     case emptyContent
     case tooLarge
     case insecureConnection
+    /// The site's bot check turned the app away, even in a web view (issue #225).
+    case blockedByBotCheck
 }

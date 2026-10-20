@@ -1,6 +1,6 @@
 import Foundation
 
-/// Pure helpers for the fetch layer, split out of URLSessionWebPageFetcher so the size and
+/// Pure helpers for the fetch layer, split out of the HTML loaders so the size and
 /// encoding rules can be unit tested without a network round trip.
 enum WebPageTextDecoding {
     /// Download cap. Real recipe pages are usually well under this; anything bigger is

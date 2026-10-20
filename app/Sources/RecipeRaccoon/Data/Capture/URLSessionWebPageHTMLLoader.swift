@@ -2,11 +2,10 @@ import Foundation
 
 /// Not unit tested: a real network round trip isn't exercised in CI or this environment,
 /// matching how FoundationModelsRecipeCaptureService's real AI call is treated. The HTTP status
-/// check, size cap enforcement, decoding, recipe JSON-LD extraction, and plain-text conversion
-/// this delegates to (WebPageTextDecoding, RecipeStructuredData, HTMLContentReducer,
-/// HTMLPlainTextConverter) are tested independently.
-final class URLSessionWebPageFetcher: WebPageFetcher {
-    func fetchPlainText(from url: URL) async throws -> String {
+/// check, size cap enforcement and decoding this delegates to (WebPageTextDecoding) are tested
+/// independently, and so is what DefaultWebPageFetcher does with the HTML.
+final class URLSessionWebPageHTMLLoader: WebPageHTMLLoader {
+    func html(from url: URL) async throws -> String {
         let data: Data
         let encodingName: String?
         do {
@@ -33,12 +32,6 @@ final class URLSessionWebPageFetcher: WebPageFetcher {
         guard let html = WebPageTextDecoding.decode(data, declaredEncodingName: encodingName) else {
             throw WebPageFetchError.emptyContent
         }
-        if let recipeText = RecipeStructuredData.recipeText(fromHTML: html) {
-            return WebPageTextDecoding.truncated(recipeText)
-        }
-        guard let plainText = await HTMLPlainTextConverter.plainText(fromHTML: HTMLContentReducer.reduced(html)) else {
-            throw WebPageFetchError.emptyContent
-        }
-        return WebPageTextDecoding.truncated(plainText)
+        return html
     }
 }
