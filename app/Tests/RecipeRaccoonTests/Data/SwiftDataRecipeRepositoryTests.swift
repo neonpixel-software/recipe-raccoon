@@ -202,4 +202,65 @@ final class SwiftDataRecipeRepositoryTests: XCTestCase {
             XCTAssertEqual(error as? RecipeRepositoryError, .recipeNotFound)
         }
     }
+
+    // MARK: - Unused tags (#211)
+
+    private func tagNames(in context: ModelContext) throws -> [String] {
+        try context.fetch(FetchDescriptor<TagModel>()).map(\.name).sorted()
+    }
+
+    func testUpdateDeletesACustomTagOnceItsLastRecipeDropsIt() throws {
+        let context = try makeInMemoryContext()
+        let recipeID = UUID()
+        let typo = TagModel(name: "Desert", isPreset: false)
+        let preset = TagModel(name: "Dessert", isPreset: true)
+        context.insert(RecipeModel(id: recipeID, title: "Pie", steps: [], isTypedSource: true, tags: [typo, preset]))
+        try context.save()
+
+        let repository = SwiftDataRecipeRepository(modelContext: context)
+        try repository.update(Recipe(id: recipeID, title: "Pie", ingredients: [], steps: [], source: .typed, tags: []))
+
+        XCTAssertEqual(try tagNames(in: context), ["Dessert"])
+    }
+
+    func testDeleteDeletesTheRecipesUnusedCustomTagsButKeepsSharedOnesAndPresets() throws {
+        let context = try makeInMemoryContext()
+        let pieID = UUID()
+        let shared = TagModel(name: "Baking", isPreset: false)
+        let preset = TagModel(name: "Dessert", isPreset: true)
+        context.insert(RecipeModel(id: pieID, title: "Pie", steps: [], isTypedSource: true, tags: [TagModel(name: "Grandma", isPreset: false), shared, preset]))
+        context.insert(RecipeModel(title: "Bread", steps: [], isTypedSource: true, tags: [shared]))
+        try context.save()
+
+        let repository = SwiftDataRecipeRepository(modelContext: context)
+        try repository.delete(id: pieID)
+
+        XCTAssertEqual(try tagNames(in: context), ["Baking", "Dessert"])
+    }
+
+    func testCreateMakesATagAgainWhenItsRowIsGone() throws {
+        let context = try makeInMemoryContext()
+        let repository = SwiftDataRecipeRepository(modelContext: context)
+        // Offered by a form, then deleted by the cleanup after another save.
+        let gone = Tag(id: UUID(), name: "Brunch", isPreset: false)
+
+        try repository.create(Recipe(id: UUID(), title: "Waffles", ingredients: [], steps: [], source: .typed, tags: [gone]))
+
+        XCTAssertEqual(try repository.fetchAll().first?.tags.map(\.name), ["Brunch"])
+        XCTAssertEqual(try tagNames(in: context), ["Brunch"])
+    }
+
+    func testCreateUsesATagWithTheSameNameWhenTheOfferedRowIsGone() throws {
+        let context = try makeInMemoryContext()
+        let existingID = UUID()
+        context.insert(RecipeModel(title: "Pancakes", steps: [], isTypedSource: true, tags: [TagModel(id: existingID, name: "Brunch", isPreset: false)]))
+        try context.save()
+
+        let repository = SwiftDataRecipeRepository(modelContext: context)
+        try repository.create(Recipe(id: UUID(), title: "Waffles", ingredients: [], steps: [], source: .typed, tags: [Tag(id: UUID(), name: "brunch", isPreset: false)]))
+
+        let waffles = try XCTUnwrap(repository.fetchAll().first { $0.title == "Waffles" })
+        XCTAssertEqual(waffles.tags.map(\.id), [existingID])
+        XCTAssertEqual(try tagNames(in: context), ["Brunch"])
+    }
 }

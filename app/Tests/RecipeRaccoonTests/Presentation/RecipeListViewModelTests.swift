@@ -147,6 +147,18 @@ final class RecipeListViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.errorMessage)
     }
 
+    /// The delete can take custom tags with it (#211), so the filter row reloads.
+    func testDeleteReloadsTheTags() {
+        let recipe = Recipe(id: UUID(), title: "Pancakes", ingredients: [], steps: [], source: .typed, tags: [])
+        let remaining = Tag(id: UUID(), name: "Breakfast", isPreset: true)
+        let viewModel = makeViewModel(fetchResult: .success([recipe]), fetchTagsResult: .success([remaining]))
+        viewModel.load()
+
+        viewModel.delete(recipe)
+
+        XCTAssertEqual(viewModel.allTags, [remaining])
+    }
+
     func testDeleteSetsErrorMessageOnFailureAndKeepsRecipe() {
         let recipe = Recipe(id: UUID(), title: "Pancakes", ingredients: [], steps: [], source: .typed, tags: [])
         let viewModel = makeViewModel(fetchResult: .success([recipe]), deleteResult: .failure(UseCaseFailure()))

@@ -98,6 +98,8 @@ final class RecipeListViewModel {
             try dependencies.deleteRecipeUseCase.execute(id: recipe.id)
             recipes.removeAll { $0.id == recipe.id }
             errorMessage = nil
+            // Deleting a recipe deletes the custom tags only it used (#211).
+            loadTags()
         } catch {
             errorMessage = error.localizedDescription
         }

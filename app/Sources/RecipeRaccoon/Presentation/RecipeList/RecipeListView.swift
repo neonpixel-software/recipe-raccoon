@@ -72,7 +72,11 @@ struct RecipeListView: View {
                                 ForEach(viewModel.filteredRecipes) { recipe in
                                     NavigationLink(destination: RecipeDetailView(
                                         viewModel: viewModel.makeDetailViewModel(for: recipe),
-                                        onRecipeChanged: { viewModel.load() }
+                                        onRecipeChanged: {
+                                            viewModel.load()
+                                            // An edit or delete can remove a custom tag (#211).
+                                            viewModel.loadTags()
+                                        }
                                     )) {
                                         RecipeRow(
                                             recipe: recipe,

@@ -24,6 +24,7 @@ final class SwiftDataRecipeRepository: RecipeRepository {
         modelContext.insert(model)
         model.replacePhotos(with: recipe.photos, newPhotos: newPhotos, in: modelContext)
         try modelContext.save()
+        try modelContext.deleteUnusedTags()
     }
 
     func update(_ recipe: Recipe, newPhotos: [UUID: ProcessedPhoto]) throws {
@@ -41,13 +42,33 @@ final class SwiftDataRecipeRepository: RecipeRepository {
         model.tags = try resolveTagModels(for: recipe.tags)
 
         try modelContext.save()
+        try modelContext.deleteUnusedTags()
     }
 
+    /// A tag can be gone by the time its recipe saves: the unused-tag cleanup (#211) after
+    /// another save, or a delete from another device, while a form still offered it. Such a tag
+    /// is matched by name or made again, like FindOrCreateTagUseCase, rather than dropped.
     private func resolveTagModels(for tags: [Tag]) throws -> [TagModel] {
         guard !tags.isEmpty else { return [] }
         let ids = Set(tags.map(\.id))
         let descriptor = FetchDescriptor<TagModel>(predicate: #Predicate { ids.contains($0.id) })
-        return try modelContext.fetch(descriptor)
+        let found = try modelContext.fetch(descriptor)
+        let missing = tags.filter { tag in !found.contains { $0.id == tag.id } }
+        guard !missing.isEmpty else { return found }
+
+        var all = try modelContext.fetch(FetchDescriptor<TagModel>())
+        var resolved = found
+        for tag in missing {
+            if let match = all.first(where: { $0.name.caseInsensitiveCompare(tag.name) == .orderedSame }) {
+                if !resolved.contains(where: { $0 === match }) { resolved.append(match) }
+            } else {
+                let model = TagModel(name: tag.name, isPreset: false)
+                modelContext.insert(model)
+                all.append(model)
+                resolved.append(model)
+            }
+        }
+        return resolved
     }
 
     func delete(id: UUID) throws {
@@ -57,5 +78,6 @@ final class SwiftDataRecipeRepository: RecipeRepository {
         }
         modelContext.delete(model)
         try modelContext.save()
+        try modelContext.deleteUnusedTags()
     }
 }
