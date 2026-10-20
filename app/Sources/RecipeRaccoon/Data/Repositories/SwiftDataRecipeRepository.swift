@@ -47,7 +47,8 @@ final class SwiftDataRecipeRepository: RecipeRepository {
 
     /// A tag can be gone by the time its recipe saves: the unused-tag cleanup (#211) after
     /// another save, or a delete from another device, while a form still offered it. Such a tag
-    /// is matched by name or made again, like FindOrCreateTagUseCase, rather than dropped.
+    /// is matched by name or made again, trimmed and ignoring case like
+    /// SwiftDataTagRepository.findOrCreate, rather than dropped.
     private func resolveTagModels(for tags: [Tag]) throws -> [TagModel] {
         guard !tags.isEmpty else { return [] }
         let ids = Set(tags.map(\.id))
@@ -59,10 +60,11 @@ final class SwiftDataRecipeRepository: RecipeRepository {
         var all = try modelContext.fetch(FetchDescriptor<TagModel>())
         var resolved = found
         for tag in missing {
-            if let match = all.first(where: { $0.name.caseInsensitiveCompare(tag.name) == .orderedSame }) {
+            let name = tag.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let match = all.first(where: { $0.name.caseInsensitiveCompare(name) == .orderedSame }) {
                 if !resolved.contains(where: { $0 === match }) { resolved.append(match) }
             } else {
-                let model = TagModel(name: tag.name, isPreset: false)
+                let model = TagModel(name: name, isPreset: false)
                 modelContext.insert(model)
                 all.append(model)
                 resolved.append(model)

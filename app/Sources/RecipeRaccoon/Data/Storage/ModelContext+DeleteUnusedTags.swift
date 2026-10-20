@@ -14,7 +14,8 @@ extension ModelContext {
     /// Saves only when it deleted something. Returns whether anything changed.
     @discardableResult
     func deleteUnusedTags() throws -> Bool {
-        let unused = try fetch(FetchDescriptor<TagModel>()).filter { !$0.isPreset && ($0.recipes ?? []).isEmpty }
+        let custom = FetchDescriptor<TagModel>(predicate: #Predicate { !$0.isPreset })
+        let unused = try fetch(custom).filter { ($0.recipes ?? []).isEmpty }
         guard !unused.isEmpty else { return false }
         for tag in unused {
             delete(tag)

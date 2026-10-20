@@ -263,4 +263,23 @@ final class SwiftDataRecipeRepositoryTests: XCTestCase {
         XCTAssertEqual(waffles.tags.map(\.id), [existingID])
         XCTAssertEqual(try tagNames(in: context), ["Brunch"])
     }
+
+    /// Trimmed like findOrCreate, so "Brunch " doesn't make a second Brunch.
+    func testCreateTrimsTheNameOfATagWhoseRowIsGone() throws {
+        let context = try makeInMemoryContext()
+        let existingID = UUID()
+        context.insert(RecipeModel(title: "Pancakes", steps: [], isTypedSource: true, tags: [TagModel(id: existingID, name: "Brunch", isPreset: false)]))
+        try context.save()
+
+        let repository = SwiftDataRecipeRepository(modelContext: context)
+        try repository.create(Recipe(id: UUID(), title: "Waffles", ingredients: [], steps: [], source: .typed, tags: [
+            Tag(id: UUID(), name: " Brunch ", isPreset: false),
+            Tag(id: UUID(), name: "Late Lunch ", isPreset: false),
+        ]))
+
+        let waffles = try XCTUnwrap(repository.fetchAll().first { $0.title == "Waffles" })
+        XCTAssertEqual(Set(waffles.tags.map(\.name)), ["Brunch", "Late Lunch"])
+        XCTAssertTrue(waffles.tags.contains { $0.id == existingID })
+        XCTAssertEqual(try tagNames(in: context), ["Brunch", "Late Lunch"])
+    }
 }
