@@ -377,6 +377,10 @@ struct RecipeCoverThumbnail: View {
             webPageFetcher: PreviewWebPageFetcher(),
             captureRecipeUseCase: DefaultCaptureRecipeUseCase(captureService: PreviewRecipeCaptureService())
         ),
+        suggestTagsUseCase: DefaultSuggestTagsUseCase(
+            fetchTagsUseCase: DefaultFetchTagsUseCase(repository: PreviewTagRepository()),
+            suggestionService: PreviewTagSuggestionService()
+        ),
         fetchPhotoThumbnailUseCase: DefaultFetchPhotoThumbnailUseCase(repository: PreviewRecipePhotoRepository()),
         fetchPhotoImageUseCase: DefaultFetchPhotoImageUseCase(repository: PreviewRecipePhotoRepository()),
         photoProcessor: ImageIOPhotoProcessor()

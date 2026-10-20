@@ -12,6 +12,21 @@ private struct FakeCaptureRecipeUseCase: CaptureRecipeUseCase {
 private struct CaptureFailure: Error, Equatable {}
 
 @MainActor
+private final class FakeSuggestTagsUseCase: SuggestTagsUseCase {
+    let tags: [Tag]
+    private(set) var requestedTitles: [String] = []
+
+    init(tags: [Tag]) {
+        self.tags = tags
+    }
+
+    func execute(for recipe: Recipe) async -> [Tag] {
+        requestedTitles.append(recipe.title)
+        return tags
+    }
+}
+
+@MainActor
 final class RecipeCaptureViewModelTests: XCTestCase {
     func testCanCaptureIsFalseWhenTextIsBlankOrWhitespace() {
         let viewModel = RecipeCaptureViewModel(captureRecipeUseCase: FakeCaptureRecipeUseCase(result: .success(makeRecipe())))
@@ -73,6 +88,33 @@ final class RecipeCaptureViewModelTests: XCTestCase {
 
         XCTAssertNil(result)
         XCTAssertEqual(viewModel.errorMessage, String(localized: "Couldn't extract a recipe from that text. Check it over and try again."))
+    }
+
+    func testCaptureStartsTheRecipeWithTheSuggestedTags() async {
+        let breakfast = Tag(id: UUID(), name: "Breakfast", isPreset: true)
+        let recipe = makeRecipe(title: "Pancakes")
+        let suggest = FakeSuggestTagsUseCase(tags: [breakfast])
+        let viewModel = RecipeCaptureViewModel(captureRecipeUseCase: FakeCaptureRecipeUseCase(result: .success(recipe)), suggestTagsUseCase: suggest)
+        viewModel.rawText = "2 eggs\nMix well"
+
+        let result = await viewModel.capture()
+
+        XCTAssertEqual(result?.tags, [breakfast])
+        XCTAssertEqual(suggest.requestedTitles, ["Pancakes"])
+    }
+
+    func testCaptureKeepsTagsTheRecipeAlreadyHas() async {
+        let dinner = Tag(id: UUID(), name: "Dinner", isPreset: true)
+        var recipe = makeRecipe(title: "Stew")
+        recipe.tags = [dinner]
+        let suggest = FakeSuggestTagsUseCase(tags: [Tag(id: UUID(), name: "Lunch", isPreset: true)])
+        let viewModel = RecipeCaptureViewModel(captureRecipeUseCase: FakeCaptureRecipeUseCase(result: .success(recipe)), suggestTagsUseCase: suggest)
+        viewModel.rawText = "2 eggs\nMix well"
+
+        let result = await viewModel.capture()
+
+        XCTAssertEqual(result?.tags, [dinner])
+        XCTAssertEqual(suggest.requestedTitles, [])
     }
 
     private func makeRecipe(title: String = "") -> Recipe {
