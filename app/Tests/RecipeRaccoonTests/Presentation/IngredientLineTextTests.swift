@@ -51,4 +51,24 @@ final class IngredientLineTextTests: XCTestCase {
 
         XCTAssertEqual(texts, ["\(weight) flour", "2 cups flour"])
     }
+
+    // MARK: scaled lines (Phase 15.3)
+
+    func testAScaledLineShowsTheOriginalUnderIt() throws {
+        let scaled = IngredientLine(id: UUID(), rawText: "1⅓ cup flour", amount: 4.0 / 3, unit: "cup", ingredientName: "flour")
+
+        XCTAssertEqual(try texts(IngredientLineText(ingredient: scaled, weight: nil, original: "⅔ cup flour")), ["1⅓ cup flour", "⅔ cup flour"])
+        XCTAssertEqual(
+            try texts(IngredientLineText(ingredient: scaled, weight: .unavailable(.noDensity), original: "⅔ cup flour")),
+            ["1⅓ cup flour", "⅔ cup flour", note]
+        )
+    }
+
+    func testAScaledLineInGramsShowsTheScaledTextUnderTheWeight() throws {
+        let scaled = IngredientLine(id: UUID(), rawText: "4 cups flour", amount: 4, unit: "cups", ingredientName: "flour")
+        let texts = try texts(IngredientLineText(ingredient: scaled, weight: .grams(500), original: "2 cups flour"))
+
+        XCTAssertEqual(texts.last, "4 cups flour")
+        XCTAssertFalse(texts.contains("2 cups flour"), "The weight view shows the scaled line, not the original: \(texts)")
+    }
 }

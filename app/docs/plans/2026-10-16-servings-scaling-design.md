@@ -68,14 +68,18 @@ start unset unless capture found a number.
   the recipe's number on every open. Factor = shown ÷ recipe's number.
 - `IngredientLine.scaled(by:)` returns a copy with the amount multiplied and
   the text rewritten:
-  - When the amount as written is at the start of `rawText` ("⅔ cup flour",
-    "1 1/2 tbsp", "2.5 dl"), only that part is replaced.
-  - Otherwise the line is built from amount, unit and name.
+  - Where the amount is written in `rawText` ("⅔ cup flour", "1 1/2 tbsp",
+    "Il vous faut 250 g de farine"), only that number is replaced, so the
+    rest of the line stays. It's found by value, within 1% (a "⅔" with 0.67
+    typed as the amount still matches), and never inside a longer number.
+  - Otherwise the line is built from amount, unit and name ("a dozen eggs"
+    → "6 eggs"); without a name, the factor goes in front ("2 × a handful").
   - A line without an amount ("salt to taste", "a pinch") is unchanged.
 - Rounding (shown amount only). The unit's group comes from the
   `MeasurementUnits` table, which already knows the units' spellings in all
   five languages. 15.3 adds which system each of its units belongs to rather
   than starting a second table:
+  - A tie goes to the smaller amount in every group (375 g shows 370 g).
   - Cups and spoons: a whole number plus the nearest of 0, ¼, ⅓, ½, ⅔ or ¾.
     Spoons below 1 can also be ⅛. An amount already on a step stays exact
     (⅔ × 2 = 1⅓). A tie goes to the smaller amount (5/12 is as close to ⅓ as
@@ -89,7 +93,9 @@ start unset unless capture found a number.
   - The text shows the amount the way the form's Amount field does, with
     `IngredientAmountFormatter` ("1⅓", "⅛", "2.5"). It moves from
     Presentation to Domain so `scaled(by:)` can use it, and what it writes
-    still reads back through `IngredientAmountParser`.
+    still reads back through `IngredientAmountParser`, which moves from Data
+    to Domain as well (`scaled(by:)` reads the amount at the start of the
+    text with it).
 - The Weight view converts the scaled lines, so grams follow. Grams come from
   the exact scaled amount, not the rounded one.
 - Known limit: units keep their singular or plural form as written ("1 cup"

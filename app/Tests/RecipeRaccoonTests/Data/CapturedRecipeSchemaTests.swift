@@ -37,6 +37,14 @@ final class CapturedRecipeSchemaTests: XCTestCase {
         XCTAssertEqual(schema.toDomain().amount, 1.5)
     }
 
+    /// #234 review: scaling finds the written amount by its value, so capture must store a
+    /// written fraction exactly, not rounded.
+    func testToDomainStoresAWrittenFractionExactly() {
+        let schema = CapturedIngredientSchema(rawText: "⅔ cup sugar", amount: "⅔", unit: "cup", ingredientName: "sugar")
+
+        XCTAssertEqual(schema.toDomain().amount, 2.0 / 3)
+    }
+
     func testToDomainTakesUnitFromAmountWhenUnitIsEmpty() {
         let schema = CapturedIngredientSchema(rawText: "100g butter", amount: "100g", unit: "", ingredientName: "butter")
 

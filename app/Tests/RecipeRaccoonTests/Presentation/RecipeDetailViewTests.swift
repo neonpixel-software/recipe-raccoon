@@ -144,6 +144,67 @@ final class RecipeDetailViewTests: XCTestCase {
         XCTAssertTrue(viewModel.isPresentingEdit)
     }
 
+    // MARK: servings (Phase 15.3)
+
+    private func flatbread(servings: Int?) -> Recipe {
+        Recipe(
+            id: UUID(),
+            title: "Flatbread",
+            servings: servings,
+            ingredients: [
+                IngredientLine(id: UUID(), rawText: "⅔ cup flour", amount: 2.0 / 3, unit: "cup", ingredientName: "flour"),
+                IngredientLine(id: UUID(), rawText: "salt to taste", ingredientName: "salt"),
+            ],
+            steps: [],
+            source: .typed,
+            tags: []
+        )
+    }
+
+    func testTheRecipesOwnServingsShowWithoutTheRecipeNote() throws {
+        let sut = RecipeDetailView(viewModel: makeViewModel(recipe: flatbread(servings: 2)))
+
+        XCTAssertNoThrow(try sut.inspect().find(text: "Servings"))
+        XCTAssertNoThrow(try sut.inspect().find(text: "⅔ cup flour"))
+        XCTAssertThrowsError(try sut.inspect().find(text: "(recipe: 2)"))
+        XCTAssertThrowsError(try sut.inspect().find(viewWithAccessibilityLabel: "Reset Servings"))
+    }
+
+    func testMoreServingsShowTheScaledLineTheOriginalAndTheRecipesNumber() throws {
+        let viewModel = makeViewModel(recipe: flatbread(servings: 2))
+        let sut = RecipeDetailView(viewModel: viewModel)
+
+        try sut.inspect().find(viewWithAccessibilityLabel: "More Servings").button().tap()
+        try sut.inspect().find(viewWithAccessibilityLabel: "More Servings").button().tap()
+
+        XCTAssertEqual(viewModel.shownServings, 4)
+        XCTAssertNoThrow(try sut.inspect().find(text: "1⅓ cup flour"))
+        XCTAssertNoThrow(try sut.inspect().find(text: "⅔ cup flour"))
+        XCTAssertNoThrow(try sut.inspect().find(text: "(recipe: 2)"))
+        XCTAssertNoThrow(try sut.inspect().find(text: "salt to taste"))
+
+        try sut.inspect().find(viewWithAccessibilityLabel: "Reset Servings").button().tap()
+        XCTAssertEqual(viewModel.shownServings, 2)
+        try sut.inspect().find(viewWithAccessibilityLabel: "Fewer Servings").button().tap()
+        XCTAssertEqual(viewModel.shownServings, 1)
+    }
+
+    func testARecipeWithoutServingsOffersSetServingsWhichOpensEdit() throws {
+        let viewModel = makeViewModel(recipe: flatbread(servings: nil))
+        let sut = RecipeDetailView(viewModel: viewModel)
+
+        XCTAssertThrowsError(try sut.inspect().find(viewWithAccessibilityLabel: "More Servings"))
+        try sut.inspect().find(button: "Set Servings").tap()
+
+        XCTAssertTrue(viewModel.isPresentingEdit)
+    }
+
+    func testARecipeWithoutIngredientsShowsNoServingsRow() throws {
+        let sut = RecipeDetailView(viewModel: makeViewModel(recipe: makeRecipe()))
+
+        XCTAssertThrowsError(try sut.inspect().find(button: "Set Servings"))
+    }
+
     /// Regression guard for #89: the list builds the view model inside a NavigationLink destination, which runs
     /// again on every list re-render. The view must own the first instance (@State); with
     /// @Bindable it switched to the new one and lost its state.

@@ -135,6 +135,7 @@ struct RecipeDetailView: View {
         .tint(PCColor.pink)
         .onChange(of: showsWeights, initial: true) { updateWeights() }
         .onChange(of: recipe.ingredients) { updateWeights() }
+        .onChange(of: viewModel.shownServings) { updateWeights() }
         .onChange(of: volumeStandard) { updateWeights() }
     }
 
@@ -164,6 +165,7 @@ struct RecipeDetailView: View {
 
             section(title: String(localized: "Ingredients"), accent: PCColor.teal) {
                 if !recipe.ingredients.isEmpty {
+                    servingsRow
                     Picker("Measurements", selection: $showsWeights) {
                         Text("As Written").tag(false)
                         Text("Weight").tag(true)
@@ -179,12 +181,16 @@ struct RecipeDetailView: View {
                             .padding(16)
                     } else {
                         VStack(spacing: 0) {
-                            ForEach(Array(recipe.ingredients.enumerated()), id: \.element.id) { index, ingredient in
+                            ForEach(Array(viewModel.shownIngredients.enumerated()), id: \.element.id) { index, ingredient in
                                 HStack(spacing: 12) {
                                     Circle()
                                         .fill(PCColor.teal)
                                         .frame(width: 8, height: 8)
-                                    IngredientLineText(ingredient: ingredient, weight: showsWeights ? weights[ingredient.id] : nil)
+                                    IngredientLineText(
+                                        ingredient: ingredient,
+                                        weight: showsWeights ? weights[ingredient.id] : nil,
+                                        original: originalText(of: ingredient)
+                                    )
                                     Spacer()
                                 }
                                 .padding(.vertical, 12)
@@ -254,8 +260,78 @@ struct RecipeDetailView: View {
         }
     }
 
+    /// Servings and a −/+ control above the ingredients (Phase 15.3), with the recipe's own
+    /// number and a reset button once it's changed; "Set Servings" opens Edit when the recipe has
+    /// no number.
+    @ViewBuilder private var servingsRow: some View {
+        if let shown = viewModel.shownServings {
+            HStack(spacing: 10) {
+                Text("Servings")
+                    .font(PCFont.body(15, weight: .semibold))
+                    .foregroundStyle(PCColor.textPrimary)
+                servingsButton("minus.circle.fill", label: "Fewer Servings", isEnabled: viewModel.canDecreaseServings) {
+                    viewModel.decreaseServings()
+                }
+                Text(shown, format: .number)
+                    .font(PCFont.body(15, weight: .semibold))
+                    .foregroundStyle(PCColor.textPrimary)
+                    .monospacedDigit()
+                    // Two digits wide, so + doesn't move between 9 and 10.
+                    .frame(minWidth: 20)
+                    .accessibilityIdentifier("shownServings")
+                servingsButton("plus.circle.fill", label: "More Servings", isEnabled: viewModel.canIncreaseServings) {
+                    viewModel.increaseServings()
+                }
+                Spacer()
+                if viewModel.isScaled, let own = recipe.servings {
+                    Text("(recipe: \(own))")
+                        .font(PCFont.body(13))
+                        .foregroundStyle(PCColor.textPrimary.opacity(0.55))
+                    servingsButton("arrow.counterclockwise.circle.fill", label: "Reset Servings", isEnabled: true) {
+                        viewModel.resetServings()
+                    }
+                }
+            }
+        } else {
+            Button {
+                viewModel.isPresentingEdit = true
+            } label: {
+                Label("Set Servings", systemImage: "plus.circle.fill")
+                    .font(PCFont.body(15, weight: .semibold))
+                    .foregroundStyle(PCColor.deepTeal)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func servingsButton(
+        _ systemImage: String,
+        label: LocalizedStringKey,
+        isEnabled: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.system(size: 22))
+                .foregroundStyle(PCColor.deepTeal)
+        }
+        .buttonStyle(.plain)
+        .disabled(!isEnabled)
+        .opacity(isEnabled ? 1 : 0.35)
+        .accessibilityLabel(Text(label))
+    }
+
+    /// The line as the recipe writes it, when the servings shown changed its text. Found by id:
+    /// a scaled line keeps its line's id.
+    private func originalText(of ingredient: IngredientLine) -> String? {
+        guard let original = recipe.ingredients.first(where: { $0.id == ingredient.id })?.rawText else { return nil }
+        return original == ingredient.rawText ? nil : original
+    }
+
+    /// Weighs the lines shown, so grams follow the servings; they come from the exact scaled
+    /// amounts, not the rounded text.
     private func updateWeights() {
-        weights = showsWeights ? convertIngredientsToWeight?.execute(recipe.ingredients, standard: volumeStandard) ?? [:] : [:]
+        weights = showsWeights ? convertIngredientsToWeight?.execute(viewModel.shownIngredients, standard: volumeStandard) ?? [:] : [:]
     }
 
     private func section(
