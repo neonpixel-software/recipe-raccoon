@@ -43,6 +43,14 @@ jobs:
             runner: xcode-27
     steps:
       - uses: actions/checkout@v7
+      - name: Generate the Xcode project
+        if: matrix.language == 'swift'
+        working-directory: app
+        # Before init: once CodeQL traces the job, Homebrew refuses to install ("Cannot install
+        # under Rosetta 2 in ARM default prefix").
+        run: |
+          brew install xcodegen
+          xcodegen generate
       - uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
         with:
           languages: ${{ matrix.language }}
@@ -53,8 +61,6 @@ jobs:
         # Both platforms, so code under #if os(iOS) and #if os(macOS) is analyzed. Debug, which
         # also compiles the #if DEBUG scenarios and previews; ci.yml builds Release separately.
         run: |
-          brew install xcodegen
-          xcodegen generate
           for destination in "generic/platform=iOS Simulator" "generic/platform=macOS"; do
             scheme=RecipeRaccoon-iOS
             [[ "$destination" == *macOS ]] && scheme=RecipeRaccoon-macOS
