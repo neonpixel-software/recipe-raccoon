@@ -89,4 +89,19 @@ final class MeasurementUnitsTests: XCTestCase {
             XCTAssertNil(MeasurementUnits.kind(of: unit, standard: .metric), unit)
         }
     }
+
+    // MARK: scaling (Phase 15.3)
+
+    func testUnitsFallIntoTheirScalingRoundingGroups() {
+        XCTAssertEqual(MeasurementUnits.scalingRounding(of: "cups"), .cup)
+        XCTAssertEqual(MeasurementUnits.scalingRounding(of: "taza"), .cup)
+        XCTAssertEqual(MeasurementUnits.scalingRounding(of: "tbsp"), .spoon)
+        XCTAssertEqual(MeasurementUnits.scalingRounding(of: "theelepel"), .spoon)
+        XCTAssertEqual(MeasurementUnits.scalingRounding(of: "dl"), .metric)
+        XCTAssertEqual(MeasurementUnits.scalingRounding(of: "kg"), .metric)
+        XCTAssertEqual(MeasurementUnits.scalingRounding(of: "fl oz"), .imperial)
+        XCTAssertEqual(MeasurementUnits.scalingRounding(of: "lbs"), .imperial)
+        XCTAssertEqual(MeasurementUnits.scalingRounding(of: "clove"), .counted)
+        XCTAssertEqual(MeasurementUnits.scalingRounding(of: nil), .counted)
+    }
 }

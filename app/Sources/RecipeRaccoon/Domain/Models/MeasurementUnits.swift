@@ -25,6 +25,20 @@ enum MeasurementUnitKind: Equatable {
     case weight(grams: Double)
 }
 
+/// How a scaled amount in a unit is rounded for the recipe screen (Phase 15.3).
+enum ScalingRounding: Equatable {
+    /// Cups: a whole number plus ¼, ⅓, ½, ⅔ or ¾.
+    case cup
+    /// Spoons: as cups, and ⅛ below one.
+    case spoon
+    /// Metric units: whole numbers, tens above 100.
+    case metric
+    /// Other imperial and US units (fluid ounces to gallons, ounces, pounds): one decimal.
+    case imperial
+    /// No unit, or one without a size ("clove", "can"): the nearest half.
+    case counted
+}
+
 /// The volume and weight units recipes use, in the languages the app ships in. Count units
 /// ("clove", "can") and vague ones ("pinch", "handful") have no size, so they aren't here.
 enum MeasurementUnits {
@@ -89,6 +103,16 @@ enum MeasurementUnits {
         .ounce: (.weight(grams: 28.349523125), .weight(grams: 28.349523125)),
         .pound: (.weight(grams: 453.59237), .weight(grams: 453.59237)),
     ]
+
+    static func scalingRounding(of unit: String?) -> ScalingRounding {
+        switch unit.flatMap(lookUp) {
+        case .cup: .cup
+        case .tablespoon, .teaspoon: .spoon
+        case .milliliter, .centiliter, .deciliter, .liter, .gram, .kilogram, .milligram: .metric
+        case .fluidOunce, .pint, .quart, .gallon, .ounce, .pound: .imperial
+        case nil: .counted
+        }
+    }
 
     static func kind(of unit: String, standard: VolumeStandard) -> MeasurementUnitKind? {
         guard let unit = lookUp(unit), let size = sizes[unit] else { return nil }

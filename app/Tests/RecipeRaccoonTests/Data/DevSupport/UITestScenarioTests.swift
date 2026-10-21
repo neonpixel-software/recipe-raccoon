@@ -19,7 +19,7 @@ final class UITestScenarioTests: XCTestCase {
     func testEachScenarioStartsWithItsRecipes() throws {
         let expectedCounts: [UITestScenario: Int] = [
             .empty: 0, .noMatchingTag: 1, .loadError: 0, .manyRecipes: 40, .recipeDetail: 1,
-            .recipeWithPhotos: 1, .recipeWithPhotosDetail: 1, .welcomeGuide: 0, .screenshots: 6,
+            .recipeWithPhotos: 1, .recipeWithPhotosDetail: 1, .servingsDetail: 1, .welcomeGuide: 0, .screenshots: 6,
         ]
         for scenario in UITestScenario.allCases {
             let container = try scenario.makeContainer(for: .local)
@@ -54,7 +54,17 @@ final class UITestScenarioTests: XCTestCase {
 
     func testOnlyTheDetailScenariosOpenOnARecipe() {
         let opening = UITestScenario.allCases.filter(\.opensRecipeDetail)
-        XCTAssertEqual(Set(opening), [.recipeDetail, .recipeWithPhotosDetail])
+        XCTAssertEqual(Set(opening), [.recipeDetail, .recipeWithPhotosDetail, .servingsDetail])
+    }
+
+    /// The scaling UI test doubles "⅔ cup flour" in a recipe for 2 and checks "salt to taste" stays.
+    @MainActor
+    func testTheServingsScenarioSeedsARecipeForTwo() throws {
+        let container = try UITestScenario.servingsDetail.makeContainer(for: .local)
+        let recipe = try XCTUnwrap(SwiftDataRecipeRepository(modelContext: container.mainContext).fetchAll().first)
+
+        XCTAssertEqual(recipe.servings, 2)
+        XCTAssertEqual(recipe.ingredients.map(\.rawText), ["⅔ cup flour", "salt to taste"])
     }
 
     func testOnlyTheLoadErrorScenarioFailsToLoad() throws {

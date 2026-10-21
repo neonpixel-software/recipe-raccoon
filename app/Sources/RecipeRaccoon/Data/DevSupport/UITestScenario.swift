@@ -28,6 +28,9 @@ enum UITestScenario: String, CaseIterable {
     case recipeWithPhotos
     /// The recipeWithPhotos recipe, opened on its detail screen like recipeDetail.
     case recipeWithPhotosDetail
+    /// Opens on the detail screen of a recipe for 2 ("Flatbread") with "⅔ cup flour" and "salt
+    /// to taste", for scaling (Phase 15.3).
+    case servingsDetail
     /// No recipes, and the welcome guide opens as on a first launch. No other scenario shows it.
     case welcomeGuide
     /// The App Store screenshots' recipes (ScreenshotRecipes) in the app's language, with photos
@@ -80,7 +83,7 @@ enum UITestScenario: String, CaseIterable {
 
     /// Whether the app opens on the first recipe's detail screen instead of the list.
     var opensRecipeDetail: Bool {
-        self == .recipeDetail || self == .recipeWithPhotosDetail
+        [.recipeDetail, .recipeWithPhotosDetail, .servingsDetail].contains(self)
     }
 
     /// Whether the welcome guide opens at launch.
@@ -132,6 +135,20 @@ enum UITestScenario: String, CaseIterable {
         }
         if self == .recipeWithPhotos || self == .recipeWithPhotosDetail {
             try Self.insertRecipeWithPhotos(into: container.mainContext)
+        }
+        if self == .servingsDetail {
+            container.mainContext.insert(Recipe(
+                id: UUID(),
+                title: "Flatbread",
+                servings: 2,
+                ingredients: [
+                    IngredientLine(id: UUID(), rawText: "⅔ cup flour", amount: 2.0 / 3, unit: "cup", ingredientName: "flour"),
+                    IngredientLine(id: UUID(), rawText: "salt to taste", ingredientName: "salt"),
+                ],
+                steps: ["Mix and bake."],
+                source: .typed,
+                tags: []
+            ).toModel())
         }
         try container.mainContext.save()
         return container
@@ -228,7 +245,7 @@ enum UITestScenario: String, CaseIterable {
         case .noMatchingTag: ["Plain Toast"]
         case .manyRecipes: (1...40).map { String(format: "Recipe %02d", $0) }
         case .recipeDetail: ["Plain Toast"]
-        case .recipeWithPhotos, .recipeWithPhotosDetail: []
+        case .recipeWithPhotos, .recipeWithPhotosDetail, .servingsDetail: []
         }
     }
 

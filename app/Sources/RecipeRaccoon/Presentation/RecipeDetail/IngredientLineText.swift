@@ -1,10 +1,12 @@
 import SwiftUI
 
 /// One ingredient line on the recipe screen. `weight` is nil in the As Written view; in the
-/// Weight view it's the line's conversion result.
+/// Weight view it's the line's conversion result. `original` is the line as the recipe writes
+/// it, when it's shown for other servings (Phase 15.3) and its text changed.
 struct IngredientLineText: View {
     let ingredient: IngredientLine
     let weight: IngredientWeight?
+    var original: String?
 
     var body: some View {
         switch weight {
@@ -21,11 +23,19 @@ struct IngredientLineText: View {
             // rather than guess a weight (PLAN.md 11.2).
             VStack(alignment: .leading, spacing: 2) {
                 primary
+                originalLine
                 secondary(Text("Conversion not available"))
             }
         default:
             // As Written, or nothing to convert ("2 eggs", "salt to taste").
-            primary
+            if original == nil {
+                primary
+            } else {
+                VStack(alignment: .leading, spacing: 2) {
+                    primary
+                    originalLine
+                }
+            }
         }
     }
 
@@ -33,6 +43,12 @@ struct IngredientLineText: View {
         Text(ingredient.rawText)
             .font(PCFont.body(15))
             .foregroundStyle(PCColor.textPrimary)
+    }
+
+    @ViewBuilder private var originalLine: some View {
+        if let original {
+            secondary(Text(verbatim: original))
+        }
     }
 
     private func secondary(_ text: Text) -> some View {

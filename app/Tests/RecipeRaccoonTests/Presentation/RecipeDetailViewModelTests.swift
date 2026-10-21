@@ -98,4 +98,89 @@ final class RecipeDetailViewModelTests: XCTestCase {
 
         XCTAssertEqual(formViewModel.title, "Pancakes")
     }
+
+    // MARK: servings (Phase 15.3)
+
+    private func flatbread(servings: Int?) -> Recipe {
+        Recipe(
+            id: UUID(),
+            title: "Flatbread",
+            servings: servings,
+            ingredients: [
+                IngredientLine(id: UUID(), rawText: "⅔ cup flour", amount: 2.0 / 3, unit: "cup", ingredientName: "flour"),
+                IngredientLine(id: UUID(), rawText: "salt to taste", ingredientName: "salt"),
+            ],
+            steps: [],
+            source: .typed,
+            tags: []
+        )
+    }
+
+    func testStartsAtTheRecipesOwnServingsUnscaled() {
+        let recipe = flatbread(servings: 2)
+        let viewModel = makeViewModel(recipe: recipe)
+
+        XCTAssertEqual(viewModel.shownServings, 2)
+        XCTAssertFalse(viewModel.isScaled)
+        XCTAssertEqual(viewModel.shownIngredients, recipe.ingredients)
+    }
+
+    func testMoreServingsScaleTheAmountsAndResetGoesBack() throws {
+        let recipe = flatbread(servings: 2)
+        let viewModel = makeViewModel(recipe: recipe)
+
+        viewModel.increaseServings()
+        viewModel.increaseServings()
+
+        XCTAssertEqual(viewModel.shownServings, 4)
+        XCTAssertTrue(viewModel.isScaled)
+        XCTAssertEqual(viewModel.shownIngredients.map(\.rawText), ["1⅓ cup flour", "salt to taste"])
+        // The weight view weighs the exact amount.
+        XCTAssertEqual(try XCTUnwrap(viewModel.shownIngredients[0].amount), 4.0 / 3, accuracy: 1e-9)
+        XCTAssertEqual(viewModel.recipe, recipe, "Scaling changed the saved recipe")
+
+        viewModel.resetServings()
+
+        XCTAssertEqual(viewModel.shownServings, 2)
+        XCTAssertEqual(viewModel.shownIngredients, recipe.ingredients)
+    }
+
+    func testServingsStayWithinOneToNinetyNine() {
+        let low = makeViewModel(recipe: flatbread(servings: 1))
+        XCTAssertFalse(low.canDecreaseServings)
+        low.decreaseServings()
+        XCTAssertEqual(low.shownServings, 1)
+
+        let high = makeViewModel(recipe: flatbread(servings: 99))
+        XCTAssertFalse(high.canIncreaseServings)
+        high.increaseServings()
+        XCTAssertEqual(high.shownServings, 99)
+        high.decreaseServings()
+        XCTAssertEqual(high.shownServings, 98)
+    }
+
+    func testARecipeWithoutServingsCannotScale() {
+        let recipe = flatbread(servings: nil)
+        let viewModel = makeViewModel(recipe: recipe)
+
+        viewModel.increaseServings()
+
+        XCTAssertNil(viewModel.shownServings)
+        XCTAssertFalse(viewModel.canIncreaseServings)
+        XCTAssertFalse(viewModel.canDecreaseServings)
+        XCTAssertFalse(viewModel.isScaled)
+        XCTAssertEqual(viewModel.shownIngredients, recipe.ingredients)
+    }
+
+    func testAnEditShowsTheRecipesNewServings() {
+        var recipe = flatbread(servings: 2)
+        let viewModel = makeViewModel(recipe: recipe)
+        viewModel.increaseServings()
+
+        recipe.servings = 6
+        viewModel.recipe = recipe
+
+        XCTAssertEqual(viewModel.shownServings, 6)
+        XCTAssertFalse(viewModel.isScaled)
+    }
 }
