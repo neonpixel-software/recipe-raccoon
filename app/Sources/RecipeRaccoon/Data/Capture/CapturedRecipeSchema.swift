@@ -5,6 +5,10 @@ import FoundationModels
 struct CapturedRecipeSchema {
     @Guide(description: "A short, descriptive title for the recipe")
     let title: String
+    /// Kept only when the source states the number as servings (`CapturedServings`), so the
+    /// model can't invent one.
+    @Guide(description: "How many people or servings the recipe makes, as a whole number, if stated, else empty")
+    let servings: String
     /// The maximum counts stop a runaway list. With greedy sampling the model can repeat one line
     /// until it runs out of context ("une pincée de sel" ×100 in a crêpe recipe, issue #76),
     /// which fails the whole capture. The limits are far above any real recipe.
@@ -34,7 +38,8 @@ extension CapturedRecipeSchema {
     /// name is also one of the equipment items is dropped too: the model sometimes lists a tool
     /// in both ("8x4-inch loaf pan" named "loaf pan", issue #82). It gives such lines an amount
     /// ("1 loaf pan"), so the unit is what tells them apart from food: "¼ cup butter" is kept
-    /// even if the model also lists "butter" as equipment for "butter the pan".
+    /// even if the model also lists "butter" as equipment for "butter the pan". The servings are
+    /// kept only if the source states them as servings.
     func toDomain(source: String? = nil) -> Recipe {
         let trimmedEquipment = equipment
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -58,6 +63,7 @@ extension CapturedRecipeSchema {
         return Recipe(
             id: UUID(),
             title: title,
+            servings: CapturedServings.grounded(servings, in: source),
             ingredients: Self.removingRepeats(mappedIngredients, by: \.rawText),
             equipment: groundedEquipment,
             steps: Self.removingRepeatedSteps(steps),

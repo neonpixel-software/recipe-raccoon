@@ -305,4 +305,20 @@ final class CapturedRecipeSchemaTests: XCTestCase {
 
         XCTAssertEqual(schema.toDomain().ingredients.map(\.ingredientName), ["butter"])
     }
+
+    // MARK: servings (Phase 15.2; the grounding rules are in CapturedServingsTests)
+
+    func testRecipeToDomainKeepsServingsTheSourceStates() {
+        let schema = CapturedRecipeSchema(title: "Soup", servings: "4", ingredients: [], equipment: [], steps: [])
+
+        XCTAssertEqual(schema.toDomain(source: "Soup\nServes 4").servings, 4)
+        XCTAssertNil(schema.toDomain(source: "Soup\n4 eggs").servings)
+    }
+}
+
+extension CapturedRecipeSchema {
+    /// The schema without servings, for the tests that don't need them.
+    init(title: String, ingredients: [CapturedIngredientSchema], equipment: [String], steps: [String]) {
+        self.init(title: title, servings: "", ingredients: ingredients, equipment: equipment, steps: steps)
+    }
 }
