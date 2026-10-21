@@ -10,8 +10,10 @@ name: CI
 # the SHA and the "# vN" comment together — keep that comment so the pin stays readable.
 
 on:
+  # PRs into release/* run CI too: the release-restrictions ruleset requires the build check,
+  # and without this trigger nothing would produce it on those PRs.
   pull_request:
-    branches: [main]
+    branches: [main, "release/*"]
   push:
     branches: [main]
 
