@@ -156,4 +156,10 @@ final class RecipeStructuredDataTests: XCTestCase {
 
         XCTAssertEqual(RecipeStructuredData.recipeText(fromHTML: html), "Soup\n\nIngredients:\n- 1 onion")
     }
+
+    func testSkipsABooleanYield() {
+        let html = page(jsonLD: #"{"@type":"Recipe","name":"Soup","recipeYield":true,"recipeIngredient":["1 onion"]}"#)
+
+        XCTAssertEqual(RecipeStructuredData.recipeText(fromHTML: html), "Soup\n\nIngredients:\n- 1 onion")
+    }
 }

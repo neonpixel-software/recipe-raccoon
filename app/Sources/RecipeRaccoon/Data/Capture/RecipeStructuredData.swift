@@ -78,11 +78,13 @@ enum RecipeStructuredData {
     }
 
     /// `recipeYield` is a string ("4 servings"), a number, or an array of either (["8", "1 loaf"]).
+    /// A JSON boolean also reads as an `NSNumber`, so it's skipped rather than read as "1".
     private static func yieldText(from value: Any?) -> String? {
         let items = value as? [Any] ?? value.map { [$0] } ?? []
         let texts = items.compactMap { item -> String? in
             if let text = item as? String { return cleaned(text) }
-            return (item as? NSNumber).map(\.stringValue)
+            guard let number = item as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() else { return nil }
+            return number.stringValue
         }.filter { !$0.isEmpty }
         return texts.isEmpty ? nil : texts.joined(separator: ", ")
     }

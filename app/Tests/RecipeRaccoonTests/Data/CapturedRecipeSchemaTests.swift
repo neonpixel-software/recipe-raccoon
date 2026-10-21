@@ -306,72 +306,13 @@ final class CapturedRecipeSchemaTests: XCTestCase {
         XCTAssertEqual(schema.toDomain().ingredients.map(\.ingredientName), ["butter"])
     }
 
-    // MARK: servings (Phase 15.2)
+    // MARK: servings (Phase 15.2; the grounding rules are in CapturedServingsTests)
 
-    private func servings(_ answer: String, in source: String?) -> Int? {
-        CapturedRecipeSchema(title: "Recipe", servings: answer, ingredients: [], equipment: [], steps: [])
-            .toDomain(source: source)
-            .servings
-    }
+    func testRecipeToDomainKeepsServingsTheSourceStates() {
+        let schema = CapturedRecipeSchema(title: "Soup", servings: "4", ingredients: [], equipment: [], steps: [])
 
-    func testRecipeToDomainKeepsServingsStatedNextToAServingsWord() {
-        XCTAssertEqual(servings("4", in: "Pancakes\nServes 4\n2 eggs"), 4)
-        XCTAssertEqual(servings("4", in: "Servings: 4"), 4)
-        XCTAssertEqual(servings("6", in: "Recette pour 6 personnes."), 6)
-        XCTAssertEqual(servings("2", in: "Für 2 Portionen"), 2)
-        XCTAssertEqual(servings("4", in: "Ingredientes (4 raciones)"), 4)
-    }
-
-    func testRecipeToDomainTakesTheLowerNumberOfARange() {
-        XCTAssertEqual(servings("4", in: "Bananenbrood\n4–6 personen"), 4)
-        XCTAssertEqual(servings("6", in: "4-6 Portionen"), 4)
-        XCTAssertEqual(servings("4-6", in: "Serves 4 - 6"), 4)
-    }
-
-    func testRecipeToDomainKeepsAYield() {
-        XCTAssertEqual(servings("12", in: "Makes 12 muffins\n200 g flour"), 12)
-        XCTAssertEqual(servings("12 muffins", in: "Makes 12 muffins"), 12)
-        XCTAssertEqual(servings("1", in: "Banana bread\n\nYield: 1 loaf\n\nIngredients:"), 1)
-    }
-
-    func testRecipeToDomainKeepsForANumberAtTheStartOfALine() {
-        XCTAssertEqual(servings("12", in: "Muffins\nVoor 12 muffins\n200 g bloem"), 12)
-    }
-
-    func testRecipeToDomainDropsANumberNotStatedAsServings() {
-        let source = """
-        Cookies
-        4 eggs
-        For 4 minutes, stir the butter.
-        4. Bake for 4 minutes.
-        """
-
-        XCTAssertNil(servings("4", in: source))
-    }
-
-    func testRecipeToDomainDropsServingsNotInTheSource() {
-        XCTAssertNil(servings("4", in: "Serves 6\n2 eggs"))
-        XCTAssertNil(servings("4", in: "2 eggs, 1 cup milk"))
-    }
-
-    func testRecipeToDomainDropsServingsOutsideTheRange() {
-        XCTAssertNil(servings("0", in: "Serves 0"))
-        XCTAssertNil(servings("120", in: "Makes 120 cookies"))
-        XCTAssertNil(servings("120", in: nil))
-    }
-
-    func testRecipeToDomainDoesNotMatchServingsInsideALongerNumber() {
-        XCTAssertNil(servings("5", in: "Serves 1.5"))
-        XCTAssertNil(servings("12", in: "Makes 120 cookies"))
-    }
-
-    func testRecipeToDomainLeavesEmptyServingsNil() {
-        XCTAssertNil(servings("", in: "Serves 4"))
-        XCTAssertNil(servings("", in: nil))
-    }
-
-    func testRecipeToDomainKeepsServingsWithoutASource() {
-        XCTAssertEqual(servings("4", in: nil), 4)
+        XCTAssertEqual(schema.toDomain(source: "Soup\nServes 4").servings, 4)
+        XCTAssertNil(schema.toDomain(source: "Soup\n4 eggs").servings)
     }
 }
 
