@@ -44,6 +44,20 @@ final class SwiftDataRecipeRepositoryTests: XCTestCase {
         XCTAssertEqual(waffles.tags.first?.name, "Breakfast")
         // Rows saved before equipment existed (#82) have none.
         XCTAssertEqual(recipes.first?.equipment, [])
+        XCTAssertNil(recipes.first?.servings)
+    }
+
+    /// A number outside 1–99 can only come from another app version through CloudKit.
+    func testFetchAllReadsServingsOutsideTheRangeAsUnknown() throws {
+        let context = try makeInMemoryContext()
+        context.insert(RecipeModel(title: "A", servings: 0, steps: [], isTypedSource: true))
+        context.insert(RecipeModel(title: "B", servings: 100, steps: [], isTypedSource: true))
+        context.insert(RecipeModel(title: "C", servings: 99, steps: [], isTypedSource: true))
+        try context.save()
+
+        let recipes = try SwiftDataRecipeRepository(modelContext: context).fetchAll()
+
+        XCTAssertEqual(recipes.map(\.servings), [nil, nil, 99])
     }
 
     func testFetchAllMapsURLSourceRecipe() throws {
@@ -64,6 +78,7 @@ final class SwiftDataRecipeRepositoryTests: XCTestCase {
         let recipe = Recipe(
             id: UUID(),
             title: "Waffles",
+            servings: 4,
             ingredients: [IngredientLine(id: UUID(), rawText: "2 cups flour", amount: 2, unit: "cup", ingredientName: "flour")],
             equipment: ["waffle iron"],
             steps: ["Cook in waffle iron"],
@@ -93,6 +108,7 @@ final class SwiftDataRecipeRepositoryTests: XCTestCase {
         let updated = Recipe(
             id: recipeID,
             title: "New Title",
+            servings: 6,
             ingredients: [IngredientLine(id: UUID(), rawText: "2 cups sugar", amount: 2, unit: "cup", ingredientName: "sugar")],
             equipment: ["saucepan"],
             steps: ["New step"],
@@ -107,6 +123,18 @@ final class SwiftDataRecipeRepositoryTests: XCTestCase {
 
         let remainingIngredients = try context.fetch(FetchDescriptor<IngredientLineModel>())
         XCTAssertEqual(remainingIngredients.map(\.rawText), ["2 cups sugar"])
+    }
+
+    func testUpdateClearsServings() throws {
+        let context = try makeInMemoryContext()
+        let recipeID = UUID()
+        context.insert(RecipeModel(id: recipeID, title: "Bread", servings: 4, steps: [], isTypedSource: true))
+        try context.save()
+
+        let repository = SwiftDataRecipeRepository(modelContext: context)
+        try repository.update(Recipe(id: recipeID, title: "Bread", servings: nil, ingredients: [], steps: [], source: .typed, tags: []))
+
+        XCTAssertNil(try repository.fetchAll().first?.servings)
     }
 
     /// SwiftData doesn't keep the order of to-many relationships (#86). 20 lines make an

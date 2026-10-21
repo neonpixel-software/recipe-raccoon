@@ -55,7 +55,8 @@ final class RecipeStoreTests: XCTestCase {
     }
 
     /// Stores saved before photos existed (Phase 13, e.g. by the v0.1.0 TestFlight build) open
-    /// with the photo schema, keep their recipes, and can take photos afterwards.
+    /// with the photo schema, keep their recipes, and can take photos afterwards. They predate
+    /// servings too (Phase 15), so their recipes have none.
     func testAStoreCreatedBeforePhotosOpensWithThePhotoSchemaAndKeepsItsRecipes() throws {
         let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -83,6 +84,7 @@ final class RecipeStoreTests: XCTestCase {
         var recipe = try XCTUnwrap(repository.fetchAll().first)
         XCTAssertEqual(recipe.title, "Pancakes")
         XCTAssertEqual(recipe.photos, [])
+        XCTAssertNil(recipe.servings)
 
         let photo = UUID()
         recipe.photos = [RecipePhoto(id: photo)]

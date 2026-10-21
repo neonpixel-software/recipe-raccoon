@@ -22,6 +22,7 @@ final class RecipeStoreCopierTests: XCTestCase {
         let recipe = try Recipe(
             id: UUID(),
             title: "Pancakes",
+            servings: 4,
             ingredients: [
                 IngredientLine(id: UUID(), rawText: "2 cups flour", amount: 2, unit: "cup", ingredientName: "flour"),
                 IngredientLine(id: UUID(), rawText: "1 egg", amount: 1, unit: nil, ingredientName: "egg"),

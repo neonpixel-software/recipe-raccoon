@@ -18,6 +18,7 @@ struct RecipeFormView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 28) {
                     titleField
+                    servingsRow
 
                     formSection(title: String(localized: "Photos"), accent: PCColor.pink) {
                         RecipeFormPhotosSection(viewModel: viewModel)
@@ -131,6 +132,48 @@ struct RecipeFormView: View {
             .foregroundStyle(PCColor.textPrimary)
             .padding(16)
             .background(PCColor.surface, in: RoundedRectangle(cornerRadius: 14))
+    }
+
+    private var servingsRow: some View {
+        HStack(spacing: 12) {
+            Text("Servings")
+                .font(PCFont.body(17, weight: .semibold))
+                .foregroundStyle(PCColor.textPrimary)
+            Spacer()
+            if let servings = viewModel.servings {
+                Stepper(value: Binding(get: { servings }, set: { viewModel.changeServings(to: $0) }), in: Recipe.servingsRange) {
+                    Text(servings, format: .number)
+                        .font(PCFont.body(17, weight: .semibold))
+                        .foregroundStyle(PCColor.textPrimary)
+                        .monospacedDigit()
+                }
+                .fixedSize()
+                .accessibilityLabel(Text("Servings"))
+                .accessibilityValue(Text(servings, format: .number))
+                .accessibilityIdentifier("servingsStepper")
+                Button {
+                    viewModel.clearServings()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("Clear Servings"))
+            } else {
+                Button {
+                    viewModel.setServings()
+                } label: {
+                    Label("Set Servings", systemImage: "plus.circle.fill")
+                        .font(PCFont.body(15, weight: .semibold))
+                        .foregroundStyle(PCColor.deepTeal)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        // The stepper's height, so the row doesn't grow when servings are set.
+        .frame(minHeight: 32)
+        .padding(16)
+        .background(PCColor.surface, in: RoundedRectangle(cornerRadius: 14))
     }
 
     private func formSection(
