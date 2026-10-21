@@ -167,8 +167,10 @@ final class RecipeFormViewModel {
         servings = Self.defaultServings
     }
 
-    /// Clamped to Recipe.servingsRange.
+    /// Clamped to Recipe.servingsRange. Changes a number that's set only: with none set, the
+    /// form shows "Set Servings" (setServings()) instead of the stepper.
     func changeServings(to value: Int) {
+        guard servings != nil else { return }
         servings = min(max(value, Recipe.servingsRange.lowerBound), Recipe.servingsRange.upperBound)
     }
 

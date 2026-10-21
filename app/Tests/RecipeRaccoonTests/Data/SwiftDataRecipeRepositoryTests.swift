@@ -125,6 +125,18 @@ final class SwiftDataRecipeRepositoryTests: XCTestCase {
         XCTAssertEqual(remainingIngredients.map(\.rawText), ["2 cups sugar"])
     }
 
+    func testUpdateClearsServings() throws {
+        let context = try makeInMemoryContext()
+        let recipeID = UUID()
+        context.insert(RecipeModel(id: recipeID, title: "Bread", servings: 4, steps: [], isTypedSource: true))
+        try context.save()
+
+        let repository = SwiftDataRecipeRepository(modelContext: context)
+        try repository.update(Recipe(id: recipeID, title: "Bread", servings: nil, ingredients: [], steps: [], source: .typed, tags: []))
+
+        XCTAssertNil(try repository.fetchAll().first?.servings)
+    }
+
     /// SwiftData doesn't keep the order of to-many relationships (#86). 20 lines make an
     /// in-order result by chance vanishingly unlikely; reading through a fresh context
     /// makes the order come from the store, not the inserting context's in-memory array.

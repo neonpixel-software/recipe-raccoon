@@ -46,12 +46,21 @@ final class RecipeFormViewModelServingsTests: XCTestCase {
 
     func testChangeServingsStaysWithinOneToNinetyNine() {
         let viewModel = makeViewModel(mode: .create)
+        viewModel.setServings()
 
         viewModel.changeServings(to: 0)
         XCTAssertEqual(viewModel.servings, 1)
 
         viewModel.changeServings(to: 100)
         XCTAssertEqual(viewModel.servings, 99)
+    }
+
+    func testChangeServingsLeavesUnsetServingsUnset() {
+        let viewModel = makeViewModel(mode: .create)
+
+        viewModel.changeServings(to: 6)
+
+        XCTAssertNil(viewModel.servings)
     }
 
     func testEditAndCaptureStartWithTheRecipesServings() throws {

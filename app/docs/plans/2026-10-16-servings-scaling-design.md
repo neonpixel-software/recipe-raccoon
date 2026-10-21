@@ -34,9 +34,10 @@ equipment aren't scaled (rewriting free text is risky).
 
 ## Form
 
-A "Servings" row of its own directly under the title field, above Photos: a
-stepper from 1 to 99 and a "Not set" state that it can be cleared back to.
-New recipes start unset unless capture found a number.
+A "Servings" row of its own directly under the title field, above Photos.
+Unset, it shows a "Set Servings" button that starts the number at 4; set, a
+stepper from 1 to 99 and a clear button that goes back to unset. New recipes
+start unset unless capture found a number.
 
 ## Capture
 
