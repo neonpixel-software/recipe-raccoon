@@ -46,11 +46,17 @@ jobs:
       - name: Generate the Xcode project
         if: matrix.language == 'swift'
         working-directory: app
-        # Before init: once CodeQL traces the job, Homebrew refuses to install ("Cannot install
-        # under Rosetta 2 in ARM default prefix").
+        # Before init: CodeQL's tracer runs what follows it as x86_64, so Homebrew refuses to
+        # install ("Cannot install under Rosetta 2 in ARM default prefix") and Swift package
+        # manifests fail to run ("Bad CPU type in executable") on an image without Rosetta.
+        # So install Rosetta, and resolve the packages here, untraced.
         run: |
+          softwareupdate --install-rosetta --agree-to-license
           brew install xcodegen
           xcodegen generate
+          for scheme in RecipeRaccoon-iOS RecipeRaccoon-macOS; do
+            xcodebuild -resolvePackageDependencies -project RecipeRaccoon.xcodeproj -scheme "$scheme"
+          done
       - uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
         with:
           languages: ${{ matrix.language }}
