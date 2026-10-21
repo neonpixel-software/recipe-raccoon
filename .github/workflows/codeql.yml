@@ -70,8 +70,11 @@ jobs:
           for destination in "generic/platform=iOS Simulator" "generic/platform=macOS"; do
             scheme=RecipeRaccoon-iOS
             [[ "$destination" == *macOS ]] && scheme=RecipeRaccoon-macOS
+            # Packages come from the untraced resolve above: resolving them again under the
+            # tracer runs /usr/bin/sandbox-exec as x86_64, which fails even with Rosetta.
             xcodebuild -project RecipeRaccoon.xcodeproj -scheme "$scheme" \
               -configuration Debug -destination "$destination" \
+              -disableAutomaticPackageResolution -onlyUsePackageVersionsFromResolvedFile \
               CODE_SIGNING_ALLOWED=NO build
           done
       - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
