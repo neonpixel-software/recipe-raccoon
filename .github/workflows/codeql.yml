@@ -1,0 +1,53 @@
+name: CodeQL Swift
+
+# The app's Swift code, which CodeQL's default setup cannot scan: its autobuild cannot
+# build the xcodegen-generated Xcode project ("we were unable to automatically build your
+# code"), and default setup has no manual build steps. This advanced workflow builds the
+# way CI does and hands the build to CodeQL. Default setup keeps Actions and C#.
+#
+# Action pinning follows the policy at the top of ci.yml.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly, like default setup's own schedule.
+    - cron: "34 5 * * 3"
+
+# CodeQL only reads the repo; results upload under the workflow's own token.
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (swift)
+    # Xcode 27, matching CI: the default macos-26 image's SDK lacks Xcode 27 APIs (issue #119).
+    runs-on: xcode-27
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v7
+      - name: Initialize CodeQL
+        # Before the build, so it can trace the Swift compiler invocations.
+        uses: github/codeql-action/init@v4
+        with:
+          languages: swift
+      - name: Install xcodegen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        run: xcodegen generate
+      - name: Build
+        # The Release configuration, like CI's archive build: code that exists only under
+        # #if DEBUG is out of scan scope, which costs no security coverage that matters.
+        run: |
+          xcodebuild -project RecipeRaccoon.xcodeproj -scheme RecipeRaccoon-macOS \
+            -configuration Release -destination "generic/platform=macOS" \
+            CODE_SIGNING_ALLOWED=NO build
+      - name: Analyze
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:swift"
