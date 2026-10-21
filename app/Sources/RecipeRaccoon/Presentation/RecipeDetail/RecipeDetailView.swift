@@ -189,7 +189,7 @@ struct RecipeDetailView: View {
                                     IngredientLineText(
                                         ingredient: ingredient,
                                         weight: showsWeights ? weights[ingredient.id] : nil,
-                                        original: originalText(of: ingredient, at: index)
+                                        original: originalText(of: ingredient)
                                     )
                                     Spacer()
                                 }
@@ -321,10 +321,10 @@ struct RecipeDetailView: View {
         .accessibilityLabel(Text(label))
     }
 
-    /// The line as the recipe writes it, when the servings shown changed its text.
-    private func originalText(of ingredient: IngredientLine, at index: Int) -> String? {
-        guard recipe.ingredients.indices.contains(index) else { return nil }
-        let original = recipe.ingredients[index].rawText
+    /// The line as the recipe writes it, when the servings shown changed its text. Found by id:
+    /// a scaled line keeps its line's id.
+    private func originalText(of ingredient: IngredientLine) -> String? {
+        guard let original = recipe.ingredients.first(where: { $0.id == ingredient.id })?.rawText else { return nil }
         return original == ingredient.rawText ? nil : original
     }
 

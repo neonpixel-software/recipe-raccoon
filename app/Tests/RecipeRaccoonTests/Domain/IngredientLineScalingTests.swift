@@ -25,21 +25,41 @@ final class IngredientLineScalingTests: XCTestCase {
         XCTAssertEqual(scaledText("  3 eggs", 3, by: 2), "  6 eggs")
     }
 
-    func testBuildsTheLineWhenTheTextDoesNotStartWithTheAmount() {
-        let flour = line("Il vous faut 250 g de farine", 250, "g", name: "farine")
+    func testReplacesTheAmountWhereverItIsWritten() {
+        let flour = line("Il vous faut 250 g de farine, tamisée", 250, "g", name: "farine")
 
-        XCTAssertEqual(flour.scaled(by: 2).rawText, "500 g farine")
+        XCTAssertEqual(flour.scaled(by: 2).rawText, "Il vous faut 500 g de farine, tamisée")
     }
 
-    func testBuildsTheLineWhenTheAmountAtTheStartIsAnotherNumber() {
-        // The model read "2" as the amount of "1 (2 lb) chicken"; the text's "1" isn't it.
+    /// #234 review: replacing the number keeps the rest of the line, where rebuilding it from
+    /// amount, unit and name gave "4 cups a good 2 cups".
+    func testKeepsTheRestOfALineWithoutAName() {
+        XCTAssertEqual(line("a good 2 cups, sifted", 2, "cups").scaled(by: 2).rawText, "a good 4 cups, sifted")
+    }
+
+    func testSkipsANumberThatIsNotTheAmount() {
+        // The model read "2" as the amount of "1 (2 lb) chicken"; the leading "1" isn't it.
         let chicken = line("1 (2 lb) chicken", 2, "lb", name: "chicken")
 
-        XCTAssertEqual(chicken.scaled(by: 2).rawText, "4 lb chicken")
+        XCTAssertEqual(chicken.scaled(by: 2).rawText, "1 (4 lb) chicken")
     }
 
-    func testKeepsTheTextWhenALineWithoutANameIsBuilt() {
-        XCTAssertEqual(line("a good 2 cups", 2, "cups").scaled(by: 2).rawText, "4 cups a good 2 cups")
+    func testDoesNotReplaceTheAmountInsideALongerNumber() {
+        XCTAssertEqual(scaledText("Bake at 200 °C: 2 cups flour", 2, "cups", by: 2), "Bake at 200 °C: 4 cups flour")
+    }
+
+    /// #234 review: an amount typed as 0.67 for a line written "⅔ cup" still replaces the ⅔.
+    func testMatchesTheWrittenAmountWithinOnePercent() {
+        XCTAssertEqual(scaledText("⅔ cup sugar, packed", 0.67, "cup", by: 2), "1⅓ cup sugar, packed")
+    }
+
+    func testBuildsTheLineWhenTheAmountIsNotWritten() {
+        XCTAssertEqual(line("a dozen eggs", 12, name: "eggs").scaled(by: 0.5).rawText, "6 eggs")
+    }
+
+    func testPutsTheFactorInFrontOfALineWithoutANameOrAWrittenAmount() {
+        XCTAssertEqual(line("a handful", 2, "handful").scaled(by: 2).rawText, "2 × a handful")
+        XCTAssertEqual(line("a handful", 2, "handful").scaled(by: 1.5).rawText, "1½ × a handful")
     }
 
     func testLeavesALineWithoutAnAmountUnchanged() {

@@ -11,30 +11,45 @@ extension IngredientLine {
         let shown = IngredientAmountFormatter.format(IngredientAmountRounding.rounded(exact, unit: unit))
         var line = self
         line.amount = exact
-        line.rawText = text(showing: shown, originalAmount: amount)
+        line.rawText = text(showing: shown, originalAmount: amount, factor: factor)
         return line
     }
 
-    /// `rawText` with the amount at its start replaced ("⅔ cup flour" → "1⅓ cup flour"), or,
-    /// when the text doesn't start with the amount, a line built from amount, unit and name.
-    private func text(showing shown: String, originalAmount amount: Double) -> String {
-        if let written = Self.leadingAmount(in: rawText),
-           let value = IngredientAmountParser.parse(String(rawText[written]))?.value,
-           abs(value - amount) < 1e-6 {
+    /// `rawText` with the amount replaced where it's written ("⅔ cup flour" → "1⅓ cup flour",
+    /// "Il vous faut 250 g de farine, tamisée" → "Il vous faut 500 g de farine, tamisée"), so
+    /// the rest of the line stays as the recipe writes it. Only when the amount isn't written
+    /// anywhere in the line is one built from amount, unit and name ("a dozen eggs" → "6 eggs"),
+    /// or, without a name, the factor put in front of the line ("2 × a handful").
+    private func text(showing shown: String, originalAmount amount: Double, factor: Double) -> String {
+        if let written = Self.writtenAmount(amount, in: rawText) {
             return rawText.replacingCharacters(in: written, with: shown)
         }
-        return [shown, unit, ingredientName ?? rawText].compactMap(\.self).joined(separator: " ")
+        guard let ingredientName else {
+            let shownFactor = IngredientAmountFormatter.format(IngredientAmountRounding.rounded(factor, unit: nil))
+            return "\(shownFactor) × \(rawText)"
+        }
+        return [shown, unit, ingredientName].compactMap(\.self).joined(separator: " ")
     }
 
-    /// Where the amount is written at the start of `text`: "1 1/2", "1½", "1 ½", "1/2", "2.5",
-    /// "2,5", "2" or "½", after any leading spaces.
-    private static func leadingAmount(in text: String) -> Range<String.Index>? {
+    /// The first number in `text` that's `amount` as written: "1 1/2", "1½", "1 ½", "1/2",
+    /// "2.5", "2,5", "2" or "½", not part of a longer number. Within 1%, so a line written
+    /// "⅔ cup" with 0.67 typed as its amount still matches; the leading "1" of "1 (2 lb)
+    /// chicken" with an amount of 2 doesn't.
+    private static func writtenAmount(_ amount: Double, in text: String) -> Range<String.Index>? {
         let fraction = "[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞]"
         let slash = #"\s*[/⁄]\s*"#
-        let pattern = #"^\s*(\d+\s+\d+"# + slash + #"\d+|\d+\s?"# + fraction + #"|\d+"# + slash + #"\d+|\d+(?:[.,]\d+)?|"# + fraction + ")"
-        guard let regex = try? NSRegularExpression(pattern: pattern),
-              let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) else { return nil }
-        return Range(match.range(at: 1), in: text)
+        let number = #"\d+\s+\d+"# + slash + #"\d+|\d+\s?"# + fraction + #"|\d+"# + slash + #"\d+|\d+(?:[.,]\d+)?|"# + fraction
+        let pattern = #"(?<![\d.,/⁄\p{L}])(?:"# + number + #")(?![\d/⁄]|[.,]\d)"#
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return nil }
+        let tolerance = max(1e-6, amount * 0.01)
+        for match in regex.matches(in: text, range: NSRange(text.startIndex..., in: text)) {
+            guard let range = Range(match.range, in: text),
+                  let value = IngredientAmountParser.parse(String(text[range]))?.value else { continue }
+            if abs(value - amount) <= tolerance {
+                return range
+            }
+        }
+        return nil
     }
 }
 

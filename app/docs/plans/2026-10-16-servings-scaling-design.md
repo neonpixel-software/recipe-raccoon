@@ -68,9 +68,12 @@ start unset unless capture found a number.
   the recipe's number on every open. Factor = shown ÷ recipe's number.
 - `IngredientLine.scaled(by:)` returns a copy with the amount multiplied and
   the text rewritten:
-  - When the amount as written is at the start of `rawText` ("⅔ cup flour",
-    "1 1/2 tbsp", "2.5 dl"), only that part is replaced.
-  - Otherwise the line is built from amount, unit and name.
+  - Where the amount is written in `rawText` ("⅔ cup flour", "1 1/2 tbsp",
+    "Il vous faut 250 g de farine"), only that number is replaced, so the
+    rest of the line stays. It's found by value, within 1% (a "⅔" with 0.67
+    typed as the amount still matches), and never inside a longer number.
+  - Otherwise the line is built from amount, unit and name ("a dozen eggs"
+    → "6 eggs"); without a name, the factor goes in front ("2 × a handful").
   - A line without an amount ("salt to taste", "a pinch") is unchanged.
 - Rounding (shown amount only). The unit's group comes from the
   `MeasurementUnits` table, which already knows the units' spellings in all
