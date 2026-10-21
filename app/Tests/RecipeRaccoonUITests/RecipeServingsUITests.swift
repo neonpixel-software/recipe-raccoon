@@ -41,23 +41,32 @@ final class RecipeServingsUITests: XCTestCase {
         let app = launch(scenario: "servingsDetail")
         let shown = app.staticTexts["shownServings"]
         XCTAssertTrue(shown.waitForExistence(timeout: 10), "The recipe screen shows no servings")
-        XCTAssertEqual(shown.label, "2")
-        XCTAssertTrue(app.staticTexts["⅔ cup flour"].exists)
-        XCTAssertFalse(app.staticTexts["(recipe: 2)"].exists, "The recipe's own number shows as changed")
+        XCTAssertEqual(Self.string(of: shown), "2")
+        XCTAssertTrue(text("⅔ cup flour", in: app).exists)
+        XCTAssertFalse(text("(recipe: 2)", in: app).exists, "The recipe's own number shows as changed")
         #if os(iOS)
         let more = app.buttons["More Servings"]
         more.tap()
         more.tap()
 
-        XCTAssertEqual(shown.label, "4")
-        XCTAssertTrue(app.staticTexts["1⅓ cup flour"].waitForExistence(timeout: 5), "The flour didn't double")
-        XCTAssertTrue(app.staticTexts["⅔ cup flour"].exists, "The original line isn't under the scaled one")
-        XCTAssertTrue(app.staticTexts["(recipe: 2)"].exists)
-        XCTAssertTrue(app.staticTexts["salt to taste"].exists)
+        XCTAssertEqual(Self.string(of: shown), "4")
+        XCTAssertTrue(text("1⅓ cup flour", in: app).waitForExistence(timeout: 5), "The flour didn't double")
+        XCTAssertTrue(text("⅔ cup flour", in: app).exists, "The original line isn't under the scaled one")
+        XCTAssertTrue(text("(recipe: 2)", in: app).exists)
+        XCTAssertTrue(text("salt to taste", in: app).exists)
 
         app.buttons["Reset Servings"].tap()
-        XCTAssertEqual(shown.label, "2")
-        XCTAssertFalse(app.staticTexts["1⅓ cup flour"].exists)
+        XCTAssertEqual(Self.string(of: shown), "2")
+        XCTAssertFalse(text("1⅓ cup flour", in: app).exists)
+        #endif
+    }
+
+    /// iOS exposes a text's string as its label, macOS as its value.
+    private static func string(of text: XCUIElement) -> String {
+        #if os(macOS)
+        text.value as? String ?? ""
+        #else
+        text.label
         #endif
     }
 }
