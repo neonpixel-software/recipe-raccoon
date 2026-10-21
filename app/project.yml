@@ -13,7 +13,7 @@ settings:
     SWIFT_VERSION: "6.0"
     # The release version; a release tag must be v<MARKETING_VERSION> (app/docs/release.md).
     # Xcode Cloud replaces the build number with its own, so CURRENT_PROJECT_VERSION stays 1.
-    MARKETING_VERSION: "1.0.3"
+    MARKETING_VERSION: "1.1.0"
     CURRENT_PROJECT_VERSION: "1"
     # The app only uses HTTPS (exempt encryption), so uploads skip the export-compliance question.
     INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
