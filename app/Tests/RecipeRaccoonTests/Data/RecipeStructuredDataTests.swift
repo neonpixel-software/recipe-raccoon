@@ -136,4 +136,24 @@ final class RecipeStructuredDataTests: XCTestCase {
 
         XCTAssertEqual(RecipeStructuredData.recipeText(fromHTML: html), "Salad\n\nIngredients:\n- 1 lettuce\n\nSteps:\n1. Chop.")
     }
+
+    // MARK: recipeYield (Phase 15.2)
+
+    func testAddsTheYieldAsAYieldLine() {
+        let html = page(jsonLD: #"{"@type":"Recipe","name":"Banana bread","recipeYield":"1 loaf","recipeIngredient":["3 bananas"]}"#)
+
+        XCTAssertEqual(RecipeStructuredData.recipeText(fromHTML: html), "Banana bread\n\nYield: 1 loaf\n\nIngredients:\n- 3 bananas")
+    }
+
+    func testJoinsAYieldArrayAndReadsNumbers() {
+        let html = page(jsonLD: #"{"@type":"Recipe","name":"Soup","recipeYield":[4,"4 servings"],"recipeIngredient":["1 onion"]}"#)
+
+        XCTAssertEqual(RecipeStructuredData.recipeText(fromHTML: html), "Soup\n\nYield: 4, 4 servings\n\nIngredients:\n- 1 onion")
+    }
+
+    func testLeavesOutAnEmptyYield() {
+        let html = page(jsonLD: #"{"@type":"Recipe","name":"Soup","recipeYield":[" "],"recipeIngredient":["1 onion"]}"#)
+
+        XCTAssertEqual(RecipeStructuredData.recipeText(fromHTML: html), "Soup\n\nIngredients:\n- 1 onion")
+    }
 }

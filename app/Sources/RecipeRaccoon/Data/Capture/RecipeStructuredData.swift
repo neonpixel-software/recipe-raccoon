@@ -56,6 +56,10 @@ enum RecipeStructuredData {
         if let name = recipe["name"] as? String, !cleaned(name).isEmpty {
             sections.append(cleaned(name))
         }
+        if let yield = yieldText(from: recipe["recipeYield"]) {
+            // A "Yield:" line, so the servings check (CapturedServings) finds the number.
+            sections.append("Yield: \(yield)")
+        }
         if !ingredients.isEmpty {
             sections.append((["Ingredients:"] + ingredients.map { "- \($0)" }).joined(separator: "\n"))
         }
@@ -71,6 +75,16 @@ enum RecipeStructuredData {
     private static func ingredientLines(from value: Any?) -> [String] {
         let items = value as? [Any] ?? (value as? String)?.components(separatedBy: .newlines) ?? []
         return items.compactMap { $0 as? String }.map(cleaned).filter { !$0.isEmpty }
+    }
+
+    /// `recipeYield` is a string ("4 servings"), a number, or an array of either (["8", "1 loaf"]).
+    private static func yieldText(from value: Any?) -> String? {
+        let items = value as? [Any] ?? value.map { [$0] } ?? []
+        let texts = items.compactMap { item -> String? in
+            if let text = item as? String { return cleaned(text) }
+            return (item as? NSNumber).map(\.stringValue)
+        }.filter { !$0.isEmpty }
+        return texts.isEmpty ? nil : texts.joined(separator: ", ")
     }
 
     /// `recipeInstructions` may be one string, an array of strings, `HowToStep`s, or
