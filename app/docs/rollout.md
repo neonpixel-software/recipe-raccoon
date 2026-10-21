@@ -199,5 +199,13 @@ fix goes through `release.md` and Stage 1 again.
 
 Tick 12.4 in PLAN.md once v1 is live on all three platforms.
 
+Servings (Phase 15, 2026-10-21): `CD_servings` (Int(64)) on `CD_RecipeModel` was added by hand in
+the development schema and deployed to production, without filling it in from a development build.
+A development build would have opened the owner's own store, migrated it and synced it to the
+development environment, because Debug and TestFlight builds share the app's data on the Mac. On the
+iPhone, installing a development build over the TestFlight app replaced the app's data container:
+recipes synced to iCloud came back after reinstalling from TestFlight, but recipes kept only on the
+device would have been lost. Back up the stores first (`devicectl device copy from`, see PLAN 4.1).
+
 For later releases, the CloudKit schema is already deployed: only a model change needs Stage 0's
 schema steps again, and then only new fields (PLAN 4.1).
