@@ -4,30 +4,45 @@
 
 | Component | Supported |
 |---|---|
-| Recipe Raccoon app (`app/`) | The current App Store release, and the branch being prepared for the next one |
+| Recipe Raccoon app (`app/`) | The latest App Store or TestFlight release, and the branch being prepared for the next one |
 | Density API (`api/`) | `main` |
 
-Security fixes ship in the next regular release, or in a patch release when the severity warrants it.
+No App Store release is public yet, so for the app that means the latest TestFlight build.
+Security fixes ship in the next regular release, or in a patch release when the severity
+warrants it.
 
 ## Reporting a vulnerability
 
-Use the **Report a vulnerability** button on this repository's [Security tab](https://github.com/neonpixel-software/recipe-raccoon/security/advise). The report opens a private advisory that only you and the maintainers can see — nothing is disclosed publicly until an agreed fix ships.
+Use **Report a vulnerability** on this repository's
+[Security tab](https://github.com/neonpixel-software/recipe-raccoon/security), or open a
+[private report](https://github.com/neonpixel-software/recipe-raccoon/security/advisories/new) directly. The
+report opens a private advisory that only you and the maintainers can see — nothing is
+disclosed publicly until an agreed fix ships.
 
 - Expect an acknowledgment within 3 business days, with updates as work progresses.
-- The goal is to confirm or dismiss a report within 14 days, and to fix confirmed issues as quickly as is responsible.
-- If the vulnerability is fixed, we will publish it in the next release and reference the advisory; if you prefer not to be credited, say so in the report.
+- The goal is to confirm or dismiss a report within 14 days, and to fix confirmed issues as
+  quickly as is responsible.
+- If the vulnerability is fixed, we will publish the advisory with the release that fixes it;
+  if you prefer not to be credited, say so in the report.
 
 ## Scope
 
 The app is local-first: recipes live in the user's own device storage and (optionally) their
 private iCloud database, and recipe capture runs on-device with Apple Intelligence. The only
-server component is the density API, which serves public ingredient density data — its write
-endpoints require an API key.
+server component is the density API, which serves public ingredient density data.
+
+Its read and write endpoints both require an API key, but the two keys play different roles:
+
+- **Reads** use a read key built into the app, so it isn't a secret: it identifies the app and
+  lets the API rate-limit reads. A report that the read key can be extracted from the app is
+  expected and out of scope.
+- **Writes** need a separate write key that only the server operator has.
 
 In scope:
 
 - The app (`app/`), including how it handles web content fetched from user-pasted URLs
-- The density API (`api/`): API key authentication, input handling, and rate limiting
+- The density API (`api/`): writing without the write key (for example by escalating the
+  read key), getting past the read rate limit, and input handling
 
 Out of scope:
 
