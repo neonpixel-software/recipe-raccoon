@@ -31,15 +31,18 @@ jobs:
         working-directory: app
     steps:
       - uses: actions/checkout@v7
-      - name: Initialize CodeQL
-        # Before the build, so it can trace the Swift compiler invocations.
-        uses: github/codeql-action/init@v4
-        with:
-          languages: swift
       - name: Install xcodegen
+        # Before CodeQL init: Homebrew cannot run under the tracer environment it sets up
+        # (brew sees DYLD_INSERT_LIBRARIES and refuses: "Cannot install under Rosetta 2"),
+        # and xcodegen only writes the project file, so it needs no tracing either.
         run: brew install xcodegen
       - name: Generate Xcode project
         run: xcodegen generate
+      - name: Initialize CodeQL
+        # After the setup steps and before the build, so it traces the Swift compiler.
+        uses: github/codeql-action/init@v4
+        with:
+          languages: swift
       - name: Build
         # The Release configuration, like CI's archive build: code that exists only under
         # #if DEBUG is out of scan scope, which costs no security coverage that matters.
