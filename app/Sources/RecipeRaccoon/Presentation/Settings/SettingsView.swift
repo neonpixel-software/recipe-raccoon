@@ -64,6 +64,10 @@ struct SettingsView: View {
                     Text(errorMessage)
                         .foregroundStyle(.red)
                 }
+
+                if !viewModel.isSwitching, let syncStatus = viewModel.syncStatus {
+                    syncStatusRow(syncStatus)
+                }
             } header: {
                 Text("Storage")
             } footer: {
@@ -93,6 +97,38 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .task { viewModel.reloadDensityStatus() }
+    }
+
+    @ViewBuilder
+    private func syncStatusRow(_ status: ICloudSyncStatus) -> some View {
+        switch status {
+        case .waiting:
+            Text("Waiting for the first sync…")
+                .foregroundStyle(.secondary)
+        case let .synced(date):
+            Text(Self.lastSyncedText(date))
+                .foregroundStyle(.secondary)
+        case let .failed(failure, details):
+            Text(failure.message)
+                .foregroundStyle(failure.isError ? .red : .secondary)
+            if failure.isError {
+                Button("Copy Error Details") { Self.copyToPasteboard(details) }
+            }
+        }
+    }
+
+    /// Resolves to the catalog key "Last synced %@"; LocalizedSettingsStringsTests checks that.
+    static func lastSyncedText(_ date: Date) -> LocalizedStringKey {
+        "Last synced \(date, format: .relative(presentation: .named))"
+    }
+
+    static func copyToPasteboard(_ text: String) {
+        #if os(macOS)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        #else
+        UIPasteboard.general.string = text
+        #endif
     }
 
     private var appearanceSection: some View {
