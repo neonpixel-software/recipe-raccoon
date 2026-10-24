@@ -130,15 +130,15 @@ guide are translated, with no English left over and nothing cut off.
 
 ### Test Information
 
-The texts used for 1.0.3, ready to paste. They're in English; TestFlight can take localized
+The texts used for 1.1.0, ready to paste. They're in English; TestFlight can take localized
 versions too. Update What to Test when a build has something new to try.
 
 **Beta App Description**
 
 > Recipe Raccoon is a recipe box without the fluff: no ads, no life stories, just the recipe. Paste
 > a link to a recipe site or type a recipe in, and Apple Intelligence sorts it into ingredients,
-> equipment and steps on your device. Add photos and tags, switch ingredients to grams, and sync
-> your recipes through your own iCloud if you like. Available in English, Spanish, French, German
+> equipment and steps on your device. Add photos and tags, scale a recipe to the servings you need,
+> switch ingredients to grams, and sync your recipes through your own iCloud if you like. Available in English, Spanish, French, German
 > and Dutch.
 
 **What to Test**
@@ -148,6 +148,11 @@ versions too. Update What to Test when a build has something new to try.
 >   Tell us if one fails or comes out wrong (missing ingredients, mixed-up steps).
 > - **Type It:** paste or type a recipe as plain text, for example from a message or a note.
 > - **Enter Manually,** editing a recipe, photos (library and camera) and tags.
+> - **New in 1.1 — tags:** after Paste a Link or Type It, the review screen suggests up to three of
+>   your tags. Long-press one of your own tags in the filter (right-click on the Mac) to delete it.
+> - **New in 1.1 — servings:** set a recipe's servings, or check that Paste a Link and Type It read
+>   them from the recipe, then use − and + on the recipe screen to scale the amounts, in grams too.
+>   Tell us about amounts that scale or round oddly.
 > - **Weight:** switch an ingredient list from cups and spoons to grams. Tell us about ingredients
 >   it doesn't know.
 > - **iCloud:** turn it on in Settings with two devices on the same Apple Account. Recipes, edits,
