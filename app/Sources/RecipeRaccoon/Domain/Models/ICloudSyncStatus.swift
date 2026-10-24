@@ -43,10 +43,14 @@ enum ICloudSyncStatus: Equatable {
 
     /// The status the latest event of each kind adds up to: the most recent failure while any
     /// kind's latest event failed (a later success of the same kind clears it), otherwise the
-    /// most recent success.
-    init(latestEvents: [ICloudSyncEvent]) {
-        let byDate = latestEvents.sorted { $0.endDate > $1.endDate }
-        if let failed = byDate.first(where: { !$0.succeeded }), let failure = failed.failure {
+    /// most recent success. Only the latest event of each kind counts, and a failure that needs
+    /// the user wins over a temporary one, so going offline doesn't hide a stopped sync.
+    init(latestEvents events: [ICloudSyncEvent]) {
+        let latestPerKind = Dictionary(events.map { ($0.kind, $0) }) { $0.endDate >= $1.endDate ? $0 : $1 }
+        let byDate = latestPerKind.values.sorted { $0.endDate > $1.endDate }
+        let failures = byDate.filter { !$0.succeeded }
+        let shown = failures.first { $0.failure != .temporary } ?? failures.first
+        if let failed = shown, let failure = failed.failure {
             self = .failed(failure, details: failed.errorDetails ?? "")
         } else if let latest = byDate.first {
             self = .synced(latest.endDate)

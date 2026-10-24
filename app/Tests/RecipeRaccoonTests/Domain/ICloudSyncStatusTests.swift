@@ -38,6 +38,27 @@ final class ICloudSyncStatusTests: XCTestCase {
         XCTAssertEqual(status, .failed(.notSignedIn, details: "details notSignedIn"))
     }
 
+    func testOnlyTheLatestEventOfEachKindCounts() {
+        let status = ICloudSyncStatus(latestEvents: [event(.export, at: 10, failure: .stopped), event(.export, at: 20)])
+
+        XCTAssertEqual(status, .synced(start.addingTimeInterval(20)))
+    }
+
+    func testAFailureThatNeedsTheUserWinsOverALaterTemporaryOne() {
+        let status = ICloudSyncStatus(latestEvents: [
+            event(.export, at: 10, failure: .stopped),
+            event(.import, at: 20, failure: .temporary),
+        ])
+
+        XCTAssertEqual(status, .failed(.stopped, details: "details stopped"))
+    }
+
+    func testATemporaryFailureShowsWhenItIsTheOnlyOne() {
+        let status = ICloudSyncStatus(latestEvents: [event(.export, at: 10), event(.import, at: 20, failure: .temporary)])
+
+        XCTAssertEqual(status, .failed(.temporary, details: "details temporary"))
+    }
+
     func testAnEventSucceedsWithoutAFailure() {
         XCTAssertTrue(event(.import, at: 0).succeeded)
         XCTAssertFalse(event(.import, at: 0, failure: .temporary).succeeded)

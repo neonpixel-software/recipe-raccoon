@@ -144,6 +144,7 @@ struct RecipeRaccoonApp: App {
     private static let seedsSampleData = false
     private static let usesDensityAPI = true
     static let isICloudEnabled = BuildConfiguration.isICloudEnabled
+    /// Debug excludes UI test scenarios, which Release can't launch.
     private static let monitorsSync = isICloudEnabled
     private static let makeContainer: PersistenceController.ContainerFactory = RecipeStore.makeContainer(for:)
 

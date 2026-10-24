@@ -100,7 +100,8 @@ final class CloudKitSyncMonitor: ICloudSyncStatusProvider {
         switch CKError.Code(rawValue: error.code) {
         case .quotaExceeded:
             return .storageFull
-        case .notAuthenticated:
+        // Temporarily unavailable: the account needs the user to sign in again in Settings.
+        case .notAuthenticated, .accountTemporarilyUnavailable:
             return .notSignedIn
         case .networkUnavailable, .networkFailure, .serviceUnavailable, .requestRateLimited, .zoneBusy:
             return .temporary

@@ -108,6 +108,7 @@ final class CloudKitSyncMonitorTests: XCTestCase {
     func testCloudKitErrors() {
         XCTAssertEqual(CloudKitSyncMonitor.failure(for: ckError(.quotaExceeded)), .storageFull)
         XCTAssertEqual(CloudKitSyncMonitor.failure(for: ckError(.notAuthenticated)), .notSignedIn)
+        XCTAssertEqual(CloudKitSyncMonitor.failure(for: ckError(.accountTemporarilyUnavailable)), .notSignedIn)
         for code in [CKError.Code.networkUnavailable, .networkFailure, .serviceUnavailable, .requestRateLimited, .zoneBusy] {
             XCTAssertEqual(CloudKitSyncMonitor.failure(for: ckError(code)), .temporary, "\(code)")
         }
