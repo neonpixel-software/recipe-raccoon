@@ -45,23 +45,28 @@ final class RecipeListHeaderUITests: XCTestCase {
         let app = launch(scenario: "manyRecipes")
 
         XCTAssertTrue(app.buttons["Recipe 01"].waitForExistence(timeout: 10))
-        // Recipe 12 starts well below the window on both platforms; once it's on screen, the list
-        // has really moved. Waiting for it also rides out the moment after a scroll when the macOS
-        // runner's accessibility snapshot comes back without the rows: an earlier check read
-        // Recipe 01's frame right then and failed with no buttons but the window's zoom button.
-        let laterRecipe = app.buttons["Recipe 12"]
-        // Nothing moves yet, so reading the frame can't race; isHittable on an off-screen element
+        // The first recipe that starts below the window: once it's on screen, the list has really
+        // moved. Waiting for it also rides out the moment after a scroll when the macOS runner's
+        // accessibility snapshot comes back without the rows: an earlier check read Recipe 01's
+        // frame right then and failed with no buttons but the window's zoom button. Found rather
+        // than fixed, because an iPad Pro 13 fits Recipe 12 on screen before scrolling.
+        // Nothing moves yet, so reading frames can't race; isHittable on an off-screen element
         // made XCTest retry for 14 s on macOS.
         let windowBottom = app.windows.firstMatch.frame.maxY
-        XCTAssertTrue(!laterRecipe.exists || laterRecipe.frame.minY >= windowBottom, "Recipe 12 is on screen before scrolling")
+        let laterName = (2...40).lazy.map { String(format: "Recipe %02d", $0) }.first { name in
+            let row = app.buttons[name]
+            return !row.exists || row.frame.minY >= windowBottom
+        }
+        guard let laterName else { return XCTFail("All 40 recipes fit on screen, so the list can't scroll") }
+        let laterRecipe = app.buttons[laterName]
         let headerBefore = assertHeaderIsAtTop(in: app)
 
         let list = app.scrollViews["RecipeList"]
         XCTAssertTrue(list.exists, "The recipe list is missing")
         // A synthesized scroll on GitHub's macOS runner sometimes moves the list less, or not at
-        // all, so scroll in steps until Recipe 12 is on screen. However far it goes, the header
+        // all, so scroll in steps until that recipe is on screen. However far it goes, the header
         // has to stay put. On iOS each step is a slow drag over a third of the list: a swipe's
-        // momentum could carry Recipe 12 past the top while the runner was still settling it,
+        // momentum could carry the recipe past the top while the runner was still settling it,
         // and the lazy list then unloads the row, so no later check can find it (#164).
         var scrolled = false
         for _ in 0..<8 where !scrolled {
@@ -73,8 +78,8 @@ final class RecipeListHeaderUITests: XCTestCase {
             #endif
             scrolled = waitUntilFullyInside(laterRecipe, window: app.windows.firstMatch.frame, timeout: 3)
         }
-        let where12 = laterRecipe.exists ? "at \(laterRecipe.frame), window bottom \(windowBottom)" : "not loaded"
-        XCTAssertTrue(scrolled, "The recipe list didn't scroll: after 8 scrolls Recipe 12 is \(where12), so this checked nothing")
+        let whereLater = laterRecipe.exists ? "at \(laterRecipe.frame), window bottom \(windowBottom)" : "not loaded"
+        XCTAssertTrue(scrolled, "The recipe list didn't scroll: after 8 scrolls \(laterName) is \(whereLater), so this checked nothing")
         let headerAfter = assertHeaderIsAtTop(in: app)
         XCTAssertEqual(headerAfter.minY, headerBefore.minY, accuracy: 1, "The header moved while the list scrolled")
     }
