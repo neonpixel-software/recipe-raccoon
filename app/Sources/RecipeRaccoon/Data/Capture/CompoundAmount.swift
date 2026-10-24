@@ -6,12 +6,12 @@ import Foundation
 enum CompoundAmount: Equatable {
     /// Both parts in the first part's unit.
     case combined(value: Double, unit: String)
-    /// A weight and a volume, or a unit without a known size ("1 tbsp plus 1 pinch"): no single
+    /// A weight and a volume, or a second part without a known size ("1 tbsp plus 1 pinch"): no single
     /// amount is right, so the line gets none rather than a wrong one.
     case uncombinable
 
     /// Words that join the two parts. Writing them side by side ("1 lb 4 oz") joins them too.
-    private static let joiners: Set<String> = ["plus", "+", "and", "y", "et", "und", "en"]
+    private static let joiners: Set<String> = ["plus", "+", ",", "and", "y", "et", "und", "en"]
 
     private static let numberRegex: NSRegularExpression? = {
         let fraction = "[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞]"
@@ -23,7 +23,8 @@ enum CompoundAmount: Equatable {
 
     /// The first compound amount in `line`: a number and a unit, optionally a joining word, then
     /// a number and a unit. Nil when the line has none, as in "2 tbsp butter and 1 tsp salt",
-    /// where an ingredient comes between the parts.
+    /// where an ingredient comes between the parts, or when the parts aren't a sum (see
+    /// `combining`).
     init?(in line: String) {
         guard let numberRegex = Self.numberRegex else { return nil }
         let numbers = numberRegex.matches(in: line, range: NSRange(line.startIndex..., in: line))
@@ -33,7 +34,8 @@ enum CompoundAmount: Equatable {
                   let secondUnit = IngredientDescriptors.leadingUnit(in: String(line[second.upperBound...])),
                   let firstValue = IngredientAmountParser.parse(String(line[first]))?.value,
                   let secondValue = IngredientAmountParser.parse(String(line[second]))?.value else { continue }
-            self = Self.combining(firstValue, firstUnit, secondValue, secondUnit)
+            guard let amount = Self.combining(firstValue, firstUnit, secondValue, secondUnit) else { return nil }
+            self = amount
             return
         }
         return nil
@@ -42,7 +44,8 @@ enum CompoundAmount: Equatable {
     /// The text between the two numbers when it's exactly a unit, optionally followed by a
     /// joining word: "cup plus", "lb", "EL +".
     private static func unit(between text: Substring) -> String? {
-        var words = text.replacingOccurrences(of: "+", with: " + ").split(whereSeparator: \.isWhitespace)
+        var words = text.replacingOccurrences(of: "+", with: " + ").replacingOccurrences(of: ",", with: " , ")
+            .split(whereSeparator: \.isWhitespace)
         if let last = words.last, joiners.contains(last.lowercased()) {
             words.removeLast()
         }
@@ -52,13 +55,21 @@ enum CompoundAmount: Equatable {
     }
 
     /// Cup-and-spoon compounds are a US habit, so sizes are US customary: 1 cup plus 2
-    /// tablespoons is 1 1/8 cups.
-    private static func combining(_ firstValue: Double, _ firstUnit: String, _ secondValue: Double, _ secondUnit: String) -> Self {
-        switch (MeasurementUnits.kind(of: firstUnit, standard: .usCustomary), MeasurementUnits.kind(of: secondUnit, standard: .usCustomary)) {
+    /// tablespoons is 1 1/8 cups. Nil when the parts aren't a sum: a container and its size
+    /// ("1 can 14 oz beans", where the model's count stays), or one amount restated in the other
+    /// system ("1 cup 250 ml milk"); every real compound keeps to one system.
+    private static func combining(_ firstValue: Double, _ firstUnit: String, _ secondValue: Double, _ secondUnit: String) -> Self? {
+        guard let firstKind = MeasurementUnits.kind(of: firstUnit, standard: .usCustomary) else { return nil }
+        let sameSystem = isMetric(firstUnit) == isMetric(secondUnit)
+        switch (firstKind, MeasurementUnits.kind(of: secondUnit, standard: .usCustomary)) {
         case let (.volume(firstSize), .volume(secondSize)), let (.weight(firstSize), .weight(secondSize)):
-            .combined(value: firstValue + secondValue * secondSize / firstSize, unit: firstUnit)
+            return sameSystem ? .combined(value: firstValue + secondValue * secondSize / firstSize, unit: firstUnit) : nil
         default:
-            .uncombinable
+            return .uncombinable
         }
+    }
+
+    private static func isMetric(_ unit: String) -> Bool {
+        MeasurementUnits.scalingRounding(of: unit) == .metric
     }
 }

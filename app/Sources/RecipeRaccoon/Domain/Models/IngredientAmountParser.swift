@@ -21,35 +21,49 @@ enum IngredientAmountParser {
     /// ranges ("2-3"), words ("a few") and amounts that aren't positive. Compound amounts
     /// ("1 cup plus 2 tablespoons") aren't amounts on their own: capture reads them from the
     /// line (`CompoundAmount`).
-    static func parse(_ text: String) -> ParsedAmount? {
+    ///
+    /// `unit` is the amount's unit when it's written apart from it, as in a form's Unit field.
+    /// With a unit of 400 g or ml or more (kg, l, lb, pint…), a comma before three digits is a
+    /// decimal comma ("1,250 kg" → 1.25), since no recipe needs a thousand of those.
+    static func parse(_ text: String, unit: String? = nil) -> ParsedAmount? {
         let normalized = text
             .replacingOccurrences(of: "\u{2044}", with: "/") // fraction slash, as in "1⁄2"
             .trimmingCharacters(in: .whitespacesAndNewlines)
 
         var quantityText = normalized
-        var unit: String?
+        var writtenUnit: String?
         if let unitStart = normalized.firstIndex(where: \.isLetter) {
             let unitText = normalized[unitStart...].trimmingCharacters(in: .whitespaces)
             guard unitText.allSatisfy({ $0.isLetter || $0 == "." || $0.isWhitespace }) else { return nil }
             quantityText = String(normalized[..<unitStart])
-            unit = unitText
+            writtenUnit = unitText
         }
 
-        guard let value = quantity(quantityText.trimmingCharacters(in: .whitespaces)),
+        let isLargeUnit = (unit ?? writtenUnit).map(isLarge) ?? false
+        guard let value = quantity(quantityText.trimmingCharacters(in: .whitespaces), readsThousands: !isLargeUnit),
               value.isFinite, value > 0 else { return nil }
-        return ParsedAmount(value: value, unit: unit)
+        return ParsedAmount(value: value, unit: writtenUnit)
     }
 
-    private static func quantity(_ text: String) -> Double? {
+    private static func isLarge(_ unit: String) -> Bool {
+        switch MeasurementUnits.kind(of: unit, standard: .usCustomary) {
+        case let .volume(size), let .weight(size): size >= 400
+        case nil: false
+        }
+    }
+
+    private static func quantity(_ text: String, readsThousands: Bool) -> Double? {
         if let decimal = Double(text) {
             return decimal
         }
-        // A decimal comma, as German, French and Dutch recipes write it ("2,5").
-        if text.range(of: #"^\d+,\d{1,2}$"#, options: .regularExpression) != nil {
+        // A decimal comma, as German, French and Dutch recipes write it ("2,5", "0,125").
+        let decimalComma = readsThousands ? #"^(\d+,\d{1,2}|0,\d{3})$"# : #"^\d+,\d{1,3}$"#
+        if text.range(of: decimalComma, options: .regularExpression) != nil {
             return Double(text.replacingOccurrences(of: ",", with: "."))
         }
         // Commas before groups of three digits are thousands separators ("1,000", "2,500.5").
-        if text.range(of: #"^\d{1,3}(,\d{3})+(\.\d+)?$"#, options: .regularExpression) != nil {
+        // A leading 0 can't start one, so "0,125" stays a decimal comma.
+        if readsThousands, text.range(of: #"^[1-9]\d{0,2}(,\d{3})+(\.\d+)?$"#, options: .regularExpression) != nil {
             return Double(text.replacingOccurrences(of: ",", with: ""))
         }
         if let last = text.last, let fraction = vulgarFractions[last] {

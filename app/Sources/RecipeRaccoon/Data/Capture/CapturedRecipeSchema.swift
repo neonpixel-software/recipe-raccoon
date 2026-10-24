@@ -127,8 +127,8 @@ extension CapturedIngredientSchema {
     }
 
     func toDomain() -> IngredientLine {
-        let parsedAmount = IngredientAmountParser.parse(amount)
         let trimmedUnit = unit.trimmingCharacters(in: .whitespacesAndNewlines)
+        let parsedAmount = IngredientAmountParser.parse(amount, unit: trimmedUnit.isEmpty ? nil : trimmedUnit)
         var name = ingredientName.trimmingCharacters(in: .whitespacesAndNewlines)
         let candidateUnit = trimmedUnit.isEmpty ? parsedAmount?.unit : trimmedUnit
         var measurementUnit: String?

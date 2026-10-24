@@ -27,6 +27,7 @@ final class CompoundAmountTests: XCTestCase {
         XCTAssertEqual(try combined("1 ½ cups and 2 tablespoons water").0, 1.625, accuracy: 1e-9)
         XCTAssertEqual(try combined("1 EL und 1 TL Zucker").0, 1 + 1.0 / 3, accuracy: 1e-9)
         XCTAssertEqual(try combined("1 kg 250 g de farine").0, 1.25, accuracy: 1e-9)
+        XCTAssertEqual(try combined("1 lb, 4 oz minced beef").0, 1.25, accuracy: 1e-9)
         XCTAssertEqual(try combined("Il vous faut 1 tasse plus 2 c. à s. de sucre").1, "tasse")
     }
 
@@ -49,6 +50,12 @@ final class CompoundAmountTests: XCTestCase {
             "2 eggs and 1 cup milk",
             "1,000 g flour",
             "a pinch of salt",
+            // The same amount in the other system, not a sum (#247 review).
+            "1 cup 250 ml milk",
+            "1 tbsp 15 ml oil",
+            // A container and its size: the model's count stays (#247 review).
+            "1 can 14 oz beans",
+            "1 box 200 g flour",
         ] {
             XCTAssertNil(CompoundAmount(in: line), line)
         }

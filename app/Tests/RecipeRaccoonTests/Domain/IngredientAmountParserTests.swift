@@ -55,6 +55,19 @@ final class IngredientAmountParserTests: XCTestCase {
         XCTAssertNil(IngredientAmountParser.parse("1,00,000"))
     }
 
+    /// #247 review: a decimal comma with three digits must not become a thousand times too much.
+    func testReadsThreeDigitsAfterACommaAsDecimalsWhereThousandsCanNotBe() {
+        XCTAssertEqual(IngredientAmountParser.parse("0,125 l"), .init(value: 0.125, unit: "l"))
+        XCTAssertEqual(IngredientAmountParser.parse("0,250")?.value, 0.25)
+        XCTAssertEqual(IngredientAmountParser.parse("1,250 kg"), .init(value: 1.25, unit: "kg"))
+        XCTAssertEqual(IngredientAmountParser.parse("1,250", unit: "kg")?.value, 1.25)
+        XCTAssertEqual(IngredientAmountParser.parse("1,500", unit: "l")?.value, 1.5)
+        XCTAssertEqual(IngredientAmountParser.parse("1,500", unit: "lb")?.value, 1.5)
+        XCTAssertEqual(IngredientAmountParser.parse("1,500", unit: "g")?.value, 1500)
+        XCTAssertEqual(IngredientAmountParser.parse("1,500", unit: "ml")?.value, 1500)
+        XCTAssertEqual(IngredientAmountParser.parse("1,500", unit: "cup")?.value, 1500)
+    }
+
     func testRejectsUnparseableText() {
         XCTAssertNil(IngredientAmountParser.parse(""))
         XCTAssertNil(IngredientAmountParser.parse("a few"))

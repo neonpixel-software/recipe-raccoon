@@ -74,6 +74,23 @@ final class CapturedRecipeSchemaTests: XCTestCase {
         XCTAssertEqual(schema.toDomain().amount, 1000)
     }
 
+    /// #247 review: with the unit in its own field, "1,250" kg is still a decimal comma.
+    func testToDomainReadsADecimalCommaWithALargeUnitFromTheUnitField() {
+        let schema = CapturedIngredientSchema(rawText: "1,250 kg Mehl", amount: "1,250", unit: "kg", ingredientName: "Mehl")
+
+        XCTAssertEqual(schema.toDomain().amount, 1.25)
+    }
+
+    /// #247 review: a container and its size keep the model's count and unit.
+    func testToDomainKeepsTheCountOfAContainerWithItsSize() {
+        let schema = CapturedIngredientSchema(rawText: "1 can 14 oz beans", amount: "1", unit: "can", ingredientName: "beans")
+
+        let line = schema.toDomain()
+
+        XCTAssertEqual(line.amount, 1)
+        XCTAssertEqual(line.unit, "can")
+    }
+
     func testToDomainTakesUnitFromAmountWhenUnitIsEmpty() {
         let schema = CapturedIngredientSchema(rawText: "100g butter", amount: "100g", unit: "", ingredientName: "butter")
 
