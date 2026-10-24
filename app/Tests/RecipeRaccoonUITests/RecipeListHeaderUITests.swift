@@ -6,6 +6,9 @@ import XCTest
 /// the window the whole column, header included, was centered in it. ViewInspector can't see
 /// laid-out positions, hence a UI test.
 final class RecipeListHeaderUITests: XCTestCase {
+    /// How many recipes the manyRecipes scenario seeds (UITestScenario.manyRecipes).
+    private static let manyRecipesCount = 40
+
     override func setUp() {
         super.setUp()
         continueAfterFailure = false
@@ -53,11 +56,11 @@ final class RecipeListHeaderUITests: XCTestCase {
         // Nothing moves yet, so reading frames can't race; isHittable on an off-screen element
         // made XCTest retry for 14 s on macOS.
         let windowBottom = app.windows.firstMatch.frame.maxY
-        let laterName = (2...40).lazy.map { String(format: "Recipe %02d", $0) }.first { name in
+        let laterName = (2...Self.manyRecipesCount).lazy.map { String(format: "Recipe %02d", $0) }.first { name in
             let row = app.buttons[name]
             return !row.exists || row.frame.minY >= windowBottom
         }
-        guard let laterName else { return XCTFail("All 40 recipes fit on screen, so the list can't scroll") }
+        guard let laterName else { return XCTFail("All \(Self.manyRecipesCount) recipes fit on screen, so the list can't scroll") }
         let laterRecipe = app.buttons[laterName]
         let headerBefore = assertHeaderIsAtTop(in: app)
 

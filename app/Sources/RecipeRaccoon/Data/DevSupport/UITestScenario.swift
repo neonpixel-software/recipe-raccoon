@@ -243,6 +243,7 @@ enum UITestScenario: String, CaseIterable {
         switch self {
         case .empty, .loadError, .welcomeGuide, .screenshots: []
         case .noMatchingTag: ["Plain Toast"]
+        // RecipeListHeaderUITests.manyRecipesCount matches this count.
         case .manyRecipes: (1...40).map { String(format: "Recipe %02d", $0) }
         case .recipeDetail: ["Plain Toast"]
         case .recipeWithPhotos, .recipeWithPhotosDetail, .servingsDetail: []
