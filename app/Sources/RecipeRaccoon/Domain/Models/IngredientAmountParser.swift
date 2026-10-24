@@ -16,11 +16,11 @@ enum IngredientAmountParser {
         "⅚": 5.0 / 6, "⅛": 1.0 / 8, "⅜": 3.0 / 8, "⅝": 5.0 / 8, "⅞": 7.0 / 8,
     ]
 
-    /// Accepts "2", "1.5", "2,5", "1/2", "1 1/2", "½", "1½", "1 ½", optionally followed by a
-    /// unit ("100g", "1/2 cup", "1/2 fl oz"). Returns nil for anything else, including ranges
-    /// ("2-3"), words ("a few") and amounts that aren't positive. Compound amounts ("1 cup plus 2 tablespoons") are not supported:
-    /// the model returns a single, usually wrong, number for them, and the user corrects it
-    /// on the review screen.
+    /// Accepts "2", "1.5", "2,5", "1,000", "1/2", "1 1/2", "½", "1½", "1 ½", optionally followed
+    /// by a unit ("100g", "1/2 cup", "1/2 fl oz"). Returns nil for anything else, including
+    /// ranges ("2-3"), words ("a few") and amounts that aren't positive. Compound amounts
+    /// ("1 cup plus 2 tablespoons") aren't amounts on their own: capture reads them from the
+    /// line (`CompoundAmount`).
     static func parse(_ text: String) -> ParsedAmount? {
         let normalized = text
             .replacingOccurrences(of: "\u{2044}", with: "/") // fraction slash, as in "1⁄2"
@@ -44,10 +44,13 @@ enum IngredientAmountParser {
         if let decimal = Double(text) {
             return decimal
         }
-        // A decimal comma, as German, French and Dutch recipes write it ("2,5"). Three digits
-        // after the comma read as a thousands separator ("1,000"), so those are rejected.
+        // A decimal comma, as German, French and Dutch recipes write it ("2,5").
         if text.range(of: #"^\d+,\d{1,2}$"#, options: .regularExpression) != nil {
             return Double(text.replacingOccurrences(of: ",", with: "."))
+        }
+        // Commas before groups of three digits are thousands separators ("1,000", "2,500.5").
+        if text.range(of: #"^\d{1,3}(,\d{3})+(\.\d+)?$"#, options: .regularExpression) != nil {
+            return Double(text.replacingOccurrences(of: ",", with: ""))
         }
         if let last = text.last, let fraction = vulgarFractions[last] {
             let whole = text.dropLast().trimmingCharacters(in: .whitespaces)

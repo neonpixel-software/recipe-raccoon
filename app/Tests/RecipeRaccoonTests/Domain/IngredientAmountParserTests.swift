@@ -43,7 +43,16 @@ final class IngredientAmountParserTests: XCTestCase {
     func testParsesDecimalComma() {
         XCTAssertEqual(IngredientAmountParser.parse("2,5")?.value, 2.5)
         XCTAssertEqual(IngredientAmountParser.parse("0,25 l"), .init(value: 0.25, unit: "l"))
-        XCTAssertNil(IngredientAmountParser.parse("1,000"))
+    }
+
+    func testParsesThousandsSeparators() {
+        XCTAssertEqual(IngredientAmountParser.parse("1,000")?.value, 1000)
+        XCTAssertEqual(IngredientAmountParser.parse("1,000 g"), .init(value: 1000, unit: "g"))
+        XCTAssertEqual(IngredientAmountParser.parse("12,500.5")?.value, 12500.5)
+        XCTAssertEqual(IngredientAmountParser.parse("1,000,000")?.value, 1_000_000)
+        XCTAssertNil(IngredientAmountParser.parse("1,0000"))
+        XCTAssertNil(IngredientAmountParser.parse("1000,000"))
+        XCTAssertNil(IngredientAmountParser.parse("1,00,000"))
     }
 
     func testRejectsUnparseableText() {
