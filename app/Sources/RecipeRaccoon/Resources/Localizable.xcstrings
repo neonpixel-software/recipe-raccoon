@@ -4872,6 +4872,202 @@
           }
         }
       }
+    },
+    "Last synced %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Última sincronización: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière synchronisation : %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zuletzt synchronisiert: %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laatst gesynchroniseerd: %@"
+          }
+        }
+      }
+    },
+    "Waiting for the first sync…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esperando la primera sincronización…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En attente de la première synchronisation…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warte auf die erste Synchronisierung …"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wachten op de eerste synchronisatie…"
+          }
+        }
+      }
+    },
+    "iCloud storage is full, so recipes can't sync. Free up space in iCloud, or switch to “On This Device”.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El almacenamiento de iCloud está lleno, así que las recetas no se pueden sincronizar. Libera espacio en iCloud o cambia a «En este dispositivo»."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le stockage iCloud est plein, les recettes ne peuvent donc pas être synchronisées. Libérez de l’espace dans iCloud ou passez à « Sur cet appareil »."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der iCloud-Speicher ist voll, daher können die Rezepte nicht synchronisiert werden. Gib Speicherplatz in iCloud frei oder wechsle zu „Auf diesem Gerät“."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De iCloud-opslag is vol, dus je recepten kunnen niet synchroniseren. Maak ruimte vrij in iCloud of kies ‘Op dit apparaat’."
+          }
+        }
+      }
+    },
+    "Not signed in to iCloud, so recipes can't sync. Sign in on this device, or switch to “On This Device”.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No has iniciado sesión en iCloud, así que las recetas no se pueden sincronizar. Inicia sesión en este dispositivo o cambia a «En este dispositivo»."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous n’êtes pas connecté à iCloud, les recettes ne peuvent donc pas être synchronisées. Connectez-vous sur cet appareil ou passez à « Sur cet appareil »."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du bist nicht bei iCloud angemeldet, daher können die Rezepte nicht synchronisiert werden. Melde dich auf diesem Gerät an oder wechsle zu „Auf diesem Gerät“."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je bent niet ingelogd bij iCloud, dus je recepten kunnen niet synchroniseren. Log in op dit apparaat of kies ‘Op dit apparaat’."
+          }
+        }
+      }
+    },
+    "Waiting for a connection to iCloud. Recipes sync once it's back.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esperando la conexión con iCloud. Las recetas se sincronizarán cuando vuelva."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En attente d’une connexion à iCloud. Les recettes seront synchronisées dès son retour."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warte auf eine Verbindung zu iCloud. Die Rezepte werden synchronisiert, sobald sie wieder da ist."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wachten op verbinding met iCloud. Je recepten synchroniseren zodra die er weer is."
+          }
+        }
+      }
+    },
+    "Sync stopped. Close Recipe Raccoon completely and open it again. If it keeps happening, copy the error details and report it.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La sincronización se ha detenido. Cierra Recipe Raccoon por completo y vuelve a abrirlo. Si sigue pasando, copia los detalles del error e infórmanos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La synchronisation s’est arrêtée. Fermez complètement Recipe Raccoon, puis rouvrez-le. Si le problème persiste, copiez les détails de l’erreur et signalez-le."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Synchronisierung wurde gestoppt. Beende Recipe Raccoon vollständig und öffne es erneut. Wenn das wieder passiert, kopiere die Fehlerdetails und melde es."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchroniseren is gestopt. Sluit Recipe Raccoon helemaal af en open het opnieuw. Gebeurt het vaker, kopieer dan de foutdetails en meld het."
+          }
+        }
+      }
+    },
+    "Copy Error Details": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar detalles del error"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier les détails de l’erreur"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fehlerdetails kopieren"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Foutdetails kopiëren"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

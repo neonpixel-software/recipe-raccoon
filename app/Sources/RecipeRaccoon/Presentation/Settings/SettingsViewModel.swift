@@ -17,15 +17,19 @@ final class SettingsViewModel {
     private let changeStorageModeUseCase: ChangeStorageModeUseCase
     /// Nil in a build without the density API configuration (DensityAPI.xcconfig).
     private let refreshDensityCacheUseCase: RefreshDensityCacheUseCase?
+    /// Nil in a build without the iCloud entitlement, and in UI test scenarios.
+    private let syncStatusProvider: ICloudSyncStatusProvider?
 
     init(
         changeStorageModeUseCase: ChangeStorageModeUseCase,
         isICloudAvailableInBuild: Bool,
-        refreshDensityCacheUseCase: RefreshDensityCacheUseCase? = nil
+        refreshDensityCacheUseCase: RefreshDensityCacheUseCase? = nil,
+        syncStatusProvider: ICloudSyncStatusProvider? = nil
     ) {
         self.changeStorageModeUseCase = changeStorageModeUseCase
         self.isICloudAvailableInBuild = isICloudAvailableInBuild
         self.refreshDensityCacheUseCase = refreshDensityCacheUseCase
+        self.syncStatusProvider = syncStatusProvider
         storageMode = changeStorageModeUseCase.currentMode
         lastDensityRefresh = refreshDensityCacheUseCase?.lastRefresh
     }
@@ -57,6 +61,12 @@ final class SettingsViewModel {
             densityStatus = .failed(DensityRefreshFailure(error))
         }
         lastDensityRefresh = refreshDensityCacheUseCase.lastRefresh
+    }
+
+    /// How sync is going, while recipes are stored in iCloud (#208). Nil in Local mode.
+    var syncStatus: ICloudSyncStatus? {
+        guard storageMode == .iCloud else { return nil }
+        return syncStatusProvider?.status
     }
 
     var canChangeStorage: Bool {
@@ -94,6 +104,26 @@ final class SettingsViewModel {
         case .available, .couldNotDetermine:
             String(localized: "Couldn't reach iCloud. Check your connection and try again.")
         }
+    }
+}
+
+extension ICloudSyncFailure {
+    var message: String {
+        switch self {
+        case .storageFull:
+            String(localized: "iCloud storage is full, so recipes can't sync. Free up space in iCloud, or switch to “On This Device”.")
+        case .notSignedIn:
+            String(localized: "Not signed in to iCloud, so recipes can't sync. Sign in on this device, or switch to “On This Device”.")
+        case .temporary:
+            String(localized: "Waiting for a connection to iCloud. Recipes sync once it's back.")
+        case .stopped:
+            String(localized: "Sync stopped. Close Recipe Raccoon completely and open it again. If it keeps happening, copy the error details and report it.")
+        }
+    }
+
+    /// A temporary failure fixes itself, so it isn't shown as an error.
+    var isError: Bool {
+        self != .temporary
     }
 }
 

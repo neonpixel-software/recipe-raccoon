@@ -48,6 +48,14 @@ final class LocalizedSettingsStringsTests: XCTestCase {
         "Open System Settings",
         "Recipe Raccoon uses your Mac's language. To choose another one for this app only, add Recipe Raccoon under Applications in Language & Region.",
         "Recipe Raccoon uses your device's language. To use another one for this app only, choose it under Language in Settings. If it isn't listed, add it to your device's languages first.",
+        // The iCloud sync status (#208).
+        "Last synced %@",
+        "Waiting for the first sync…",
+        "iCloud storage is full, so recipes can't sync. Free up space in iCloud, or switch to “On This Device”.",
+        "Not signed in to iCloud, so recipes can't sync. Sign in on this device, or switch to “On This Device”.",
+        "Waiting for a connection to iCloud. Recipes sync once it's back.",
+        "Sync stopped. Close Recipe Raccoon completely and open it again. If it keeps happening, copy the error details and report it.",
+        "Copy Error Details",
     ]
 
     /// Translated, but the same word in some language ("System" in German), so the check
@@ -83,6 +91,15 @@ final class LocalizedSettingsStringsTests: XCTestCase {
 
         XCTAssertEqual(keyString, "Last updated %@")
         XCTAssertEqual(LocalizationTestHelper.translatedString(keyString, languageCode: "de"), "Zuletzt aktualisiert: %@")
+    }
+
+    @MainActor
+    func testLastSyncedResolvesToItsCatalogKey() throws {
+        let key = SettingsView.lastSyncedText(Date())
+        let keyString = try XCTUnwrap(Mirror(reflecting: key).children.first { $0.label == "key" }?.value as? String)
+
+        XCTAssertEqual(keyString, "Last synced %@")
+        XCTAssertEqual(LocalizationTestHelper.translatedString(keyString, languageCode: "de"), "Zuletzt synchronisiert: %@")
     }
 
     func testSpotCheckGermanStorageLabels() {

@@ -28,6 +28,8 @@ struct RecipeRaccoonApp: App {
     init() {
         PCFontRegistrar.registerCustomFonts()
 
+        // Before the store opens, so it sees the setup event.
+        let syncMonitor = Self.makeSyncMonitor()
         do {
             persistence = try PersistenceController(
                 isICloudEnabledInBuild: Self.isICloudEnabled,
@@ -70,7 +72,8 @@ struct RecipeRaccoonApp: App {
                 accountStatusProvider: CloudKitAccountStatusProvider(isEnabledInBuild: BuildConfiguration.isICloudEnabled)
             ),
             isICloudAvailableInBuild: BuildConfiguration.isICloudEnabled,
-            refreshDensityCacheUseCase: refreshDensityCacheUseCase
+            refreshDensityCacheUseCase: refreshDensityCacheUseCase,
+            syncStatusProvider: syncMonitor
         )
         welcomeGuideViewModel = WelcomeGuideViewModel(
             status: Self.makeWelcomeGuideStatus(),
@@ -92,6 +95,8 @@ struct RecipeRaccoonApp: App {
     private static let usesDensityAPI = usesRealStore
     /// Internal so a test can check the unit tests' host app runs without iCloud (#160).
     static let isICloudEnabled = BuildConfiguration.isICloudEnabled && !isHostingUnitTests
+    /// A scenario's in-memory store never syncs.
+    private static let monitorsSync = isICloudEnabled && uiTestScenario == nil
     #if os(macOS)
     private static let uiTestWindowSize = uiTestScenario?.macWindowContentSize
     #else
@@ -139,6 +144,8 @@ struct RecipeRaccoonApp: App {
     private static let seedsSampleData = false
     private static let usesDensityAPI = true
     static let isICloudEnabled = BuildConfiguration.isICloudEnabled
+    /// Debug excludes UI test scenarios, which Release can't launch.
+    private static let monitorsSync = isICloudEnabled
     private static let makeContainer: PersistenceController.ContainerFactory = RecipeStore.makeContainer(for:)
 
     private static func recipeRepository(wrapping repository: RecipeRepository) -> RecipeRepository {
@@ -161,6 +168,11 @@ struct RecipeRaccoonApp: App {
         UserDefaultsWelcomeGuideStatus()
     }
     #endif
+
+    @MainActor
+    private static func makeSyncMonitor() -> CloudKitSyncMonitor? {
+        monitorsSync ? CloudKitSyncMonitor() : nil
+    }
 
     private func makeRecipeListViewModel() -> RecipeListViewModel {
         let viewModel = RecipeListViewModel(dependencies: .init(
