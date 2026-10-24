@@ -197,9 +197,9 @@ jobs:
             "app/$COVERAGE.xml"
 
   build:
-    # The required status check (main's ruleset requires "build"). Passes when both
-    # platform legs and the API build passed, or were skipped because nothing under their
-    # folder changed.
+    # The required status check (main-restrictions and release-restrictions require
+    # "build"). Passes when both platform legs and the API build passed, or were skipped
+    # because nothing under their folder changed.
     needs: [changes, build-apple, build-api]
     if: always()
     runs-on: ubuntu-latest
