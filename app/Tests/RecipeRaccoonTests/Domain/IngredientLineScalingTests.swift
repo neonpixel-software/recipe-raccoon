@@ -22,6 +22,7 @@ final class IngredientLineScalingTests: XCTestCase {
         XCTAssertEqual(scaledText("1½ tsp salt", 1.5, "tsp", by: 2), "3 tsp salt")
         XCTAssertEqual(scaledText("100g butter", 100, "g", by: 2), "200g butter")
         XCTAssertEqual(scaledText("2,5 dl Milch", 2.5, "dl", by: 2), "5 dl Milch")
+        XCTAssertEqual(scaledText("1,000 g flour", 1000, "g", by: 2), "2000 g flour")
         XCTAssertEqual(scaledText("  3 eggs", 3, by: 2), "  6 eggs")
     }
 

@@ -392,7 +392,7 @@ final class RecipeFormViewModel {
             // unit typed into the Amount field ("100g") isn't split out, so that stays nil.
             let parsedAmount = draft.isAmountUnchangedFromOriginal
                 ? draft.original?.amount
-                : IngredientAmountParser.parse(amount).flatMap { $0.unit == nil ? $0.value : nil }
+                : IngredientAmountParser.parse(amount, unit: unit.isEmpty ? nil : unit).flatMap { $0.unit == nil ? $0.value : nil }
             return IngredientLine(
                 id: draft.id,
                 rawText: rawText,

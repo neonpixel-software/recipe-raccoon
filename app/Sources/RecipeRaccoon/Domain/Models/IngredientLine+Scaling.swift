@@ -21,7 +21,7 @@ extension IngredientLine {
     /// anywhere in the line is one built from amount, unit and name ("a dozen eggs" → "6 eggs"),
     /// or, without a name, the factor put in front of the line ("2 × a handful").
     private func text(showing shown: String, originalAmount amount: Double, factor: Double) -> String {
-        if let written = Self.writtenAmount(amount, in: rawText) {
+        if let written = Self.writtenAmount(amount, unit: unit, in: rawText) {
             return rawText.replacingCharacters(in: written, with: shown)
         }
         guard let ingredientName else {
@@ -35,7 +35,7 @@ extension IngredientLine {
     /// "2.5", "2,5", "2" or "½", not part of a longer number. Within 1%, so a line written
     /// "⅔ cup" with 0.67 typed as its amount still matches; the leading "1" of "1 (2 lb)
     /// chicken" with an amount of 2 doesn't.
-    private static func writtenAmount(_ amount: Double, in text: String) -> Range<String.Index>? {
+    private static func writtenAmount(_ amount: Double, unit: String?, in text: String) -> Range<String.Index>? {
         let fraction = "[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞]"
         let slash = #"\s*[/⁄]\s*"#
         let number = #"\d+\s+\d+"# + slash + #"\d+|\d+\s?"# + fraction + #"|\d+"# + slash + #"\d+|\d+(?:[.,]\d+)?|"# + fraction
@@ -44,7 +44,7 @@ extension IngredientLine {
         let tolerance = max(1e-6, amount * 0.01)
         for match in regex.matches(in: text, range: NSRange(text.startIndex..., in: text)) {
             guard let range = Range(match.range, in: text),
-                  let value = IngredientAmountParser.parse(String(text[range]))?.value else { continue }
+                  let value = IngredientAmountParser.parse(String(text[range]), unit: unit)?.value else { continue }
             if abs(value - amount) <= tolerance {
                 return range
             }

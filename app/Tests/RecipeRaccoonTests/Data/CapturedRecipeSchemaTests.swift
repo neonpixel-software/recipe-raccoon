@@ -45,6 +45,52 @@ final class CapturedRecipeSchemaTests: XCTestCase {
         XCTAssertEqual(schema.toDomain().amount, 2.0 / 3)
     }
 
+    /// #216: the model's single number for a compound amount is wrong, so the line's parts win.
+    func testToDomainCombinesACompoundAmountFromTheLine() throws {
+        let schema = CapturedIngredientSchema(
+            rawText: "1 cup plus 2 tablespoons flour", amount: "1 2/3", unit: "cup", ingredientName: "flour"
+        )
+
+        let line = schema.toDomain()
+
+        XCTAssertEqual(try XCTUnwrap(line.amount), 1.125, accuracy: 1e-9)
+        XCTAssertEqual(line.unit, "cup")
+        XCTAssertEqual(line.ingredientName, "flour")
+    }
+
+    func testToDomainGivesACompoundOfWeightAndVolumeNoAmount() {
+        let schema = CapturedIngredientSchema(rawText: "1 cup plus 50 g sugar", amount: "1", unit: "cup", ingredientName: "sugar")
+
+        let line = schema.toDomain()
+
+        XCTAssertNil(line.amount)
+        XCTAssertNil(line.unit)
+        XCTAssertEqual(line.ingredientName, "sugar")
+    }
+
+    func testToDomainParsesAThousandsSeparator() {
+        let schema = CapturedIngredientSchema(rawText: "1,000 g flour", amount: "1,000", unit: "g", ingredientName: "flour")
+
+        XCTAssertEqual(schema.toDomain().amount, 1000)
+    }
+
+    /// #247 review: with the unit in its own field, "1,250" kg is still a decimal comma.
+    func testToDomainReadsADecimalCommaWithALargeUnitFromTheUnitField() {
+        let schema = CapturedIngredientSchema(rawText: "1,250 kg Mehl", amount: "1,250", unit: "kg", ingredientName: "Mehl")
+
+        XCTAssertEqual(schema.toDomain().amount, 1.25)
+    }
+
+    /// #247 review: a container and its size keep the model's count and unit.
+    func testToDomainKeepsTheCountOfAContainerWithItsSize() {
+        let schema = CapturedIngredientSchema(rawText: "1 can 14 oz beans", amount: "1", unit: "can", ingredientName: "beans")
+
+        let line = schema.toDomain()
+
+        XCTAssertEqual(line.amount, 1)
+        XCTAssertEqual(line.unit, "can")
+    }
+
     func testToDomainTakesUnitFromAmountWhenUnitIsEmpty() {
         let schema = CapturedIngredientSchema(rawText: "100g butter", amount: "100g", unit: "", ingredientName: "butter")
 

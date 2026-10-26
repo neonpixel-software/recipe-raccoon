@@ -127,8 +127,8 @@ extension CapturedIngredientSchema {
     }
 
     func toDomain() -> IngredientLine {
-        let parsedAmount = IngredientAmountParser.parse(amount)
         let trimmedUnit = unit.trimmingCharacters(in: .whitespacesAndNewlines)
+        let parsedAmount = IngredientAmountParser.parse(amount, unit: trimmedUnit.isEmpty ? nil : trimmedUnit)
         var name = ingredientName.trimmingCharacters(in: .whitespacesAndNewlines)
         let candidateUnit = trimmedUnit.isEmpty ? parsedAmount?.unit : trimmedUnit
         var measurementUnit: String?
@@ -143,10 +143,22 @@ extension CapturedIngredientSchema {
             measurementUnit = unitWrittenInText(amountParsed: parsedAmount != nil)
         }
         name = IngredientDescriptors.removingSizeWords(from: name)
+        var amountValue = parsedAmount?.value
+        // The model's number for a compound amount is wrong, so the line's own parts replace it.
+        switch CompoundAmount(in: rawText) {
+        case let .combined(value, unit):
+            amountValue = value
+            measurementUnit = unit
+        case .uncombinable:
+            amountValue = nil
+            measurementUnit = nil
+        case nil:
+            break
+        }
         return IngredientLine(
             id: UUID(),
             rawText: rawText,
-            amount: parsedAmount?.value,
+            amount: amountValue,
             unit: measurementUnit,
             ingredientName: name.isEmpty ? nil : name
         )
