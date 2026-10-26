@@ -104,4 +104,18 @@ final class MeasurementUnitsTests: XCTestCase {
         XCTAssertEqual(MeasurementUnits.scalingRounding(of: "clove"), .counted)
         XCTAssertEqual(MeasurementUnits.scalingRounding(of: nil), .counted)
     }
+
+    // MARK: vague units (#251)
+
+    func testVagueUnitsInEachLanguageAndThePlural() {
+        for unit in ["pinch", "Pinches", "dash", "handfuls", "pizca", "pincée", "Prise", "Prisen", "Msp", "snufje", "snufjes"] {
+            XCTAssertTrue(MeasurementUnits.isVague(unit), unit)
+        }
+    }
+
+    func testSizedAndCountedUnitsAreNotVague() {
+        for unit: String? in ["cup", "g", "clove", "can", "slice", "", nil] {
+            XCTAssertFalse(MeasurementUnits.isVague(unit), unit ?? "nil")
+        }
+    }
 }

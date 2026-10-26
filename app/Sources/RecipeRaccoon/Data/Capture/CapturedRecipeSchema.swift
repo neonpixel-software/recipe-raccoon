@@ -155,6 +155,11 @@ extension CapturedIngredientSchema {
         case nil:
             break
         }
+        // A vague unit has no amount unless the line writes one: "snufje zout" with the model's
+        // "1" reads like "a pinch" (#251).
+        if MeasurementUnits.isVague(measurementUnit), !Self.writesANumber(rawText) {
+            amountValue = nil
+        }
         return IngredientLine(
             id: UUID(),
             rawText: rawText,
@@ -162,6 +167,10 @@ extension CapturedIngredientSchema {
             unit: measurementUnit,
             ingredientName: name.isEmpty ? nil : name
         )
+    }
+
+    private static func writesANumber(_ text: String) -> Bool {
+        text.range(of: #"[\d½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞]"#, options: .regularExpression) != nil
     }
 
     /// The unit as written in rawText right after the amount ("1/3 cup butter", "Il vous faut

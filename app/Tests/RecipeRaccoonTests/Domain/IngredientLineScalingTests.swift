@@ -59,8 +59,25 @@ final class IngredientLineScalingTests: XCTestCase {
     }
 
     func testPutsTheFactorInFrontOfALineWithoutANameOrAWrittenAmount() {
-        XCTAssertEqual(line("a handful", 2, "handful").scaled(by: 2).rawText, "2 × a handful")
-        XCTAssertEqual(line("a handful", 2, "handful").scaled(by: 1.5).rawText, "1½ × a handful")
+        XCTAssertEqual(line("a can", 1, "can").scaled(by: 2).rawText, "2 × a can")
+        XCTAssertEqual(line("a can", 1, "can").scaled(by: 1.5).rawText, "1½ × a can")
+    }
+
+    /// #251: the model gave "snufje zout" an amount of 1, which scaled to "1½ snufje zout".
+    func testLeavesAVagueUnitWithoutAWrittenAmountUnchanged() {
+        let salt = line("snufje zout", 1, "snufje", name: "zout")
+        let pinch = line("a pinch of salt", 1, "pinch", name: "salt")
+
+        XCTAssertEqual(salt.scaled(by: 1.5), salt)
+        XCTAssertEqual(pinch.scaled(by: 2), pinch)
+    }
+
+    func testScalesAVagueUnitWithAWrittenAmount() {
+        XCTAssertEqual(line("2 snufjes zout", 2, "snufjes", name: "zout").scaled(by: 1.5).rawText, "3 snufjes zout")
+    }
+
+    func testStillBuildsACountedUnitWithoutAWrittenAmount() {
+        XCTAssertEqual(line("a clove of garlic", 1, "clove", name: "garlic").scaled(by: 2).rawText, "2 clove garlic")
     }
 
     func testLeavesALineWithoutAnAmountUnchanged() {

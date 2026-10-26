@@ -164,6 +164,22 @@ final class CapturedRecipeSchemaTests: XCTestCase {
         XCTAssertEqual(line.unit, "pinch")
     }
 
+    /// #251: the model gives a vague unit without a number an amount of 1.
+    func testToDomainDropsAnAmountAVagueUnitDoesNotWrite() {
+        let line = CapturedIngredientSchema(rawText: "snufje zout", amount: "1", unit: "snufje", ingredientName: "zout").toDomain()
+
+        XCTAssertNil(line.amount)
+        XCTAssertEqual(line.unit, "snufje")
+    }
+
+    func testToDomainKeepsAWrittenOrCountedAmount() {
+        let pinches = CapturedIngredientSchema(rawText: "2 pinches salt", amount: "2", unit: "pinches", ingredientName: "salt").toDomain()
+        let clove = CapturedIngredientSchema(rawText: "a clove of garlic", amount: "1", unit: "clove", ingredientName: "garlic").toDomain()
+
+        XCTAssertEqual(pinches.amount, 2)
+        XCTAssertEqual(clove.amount, 1)
+    }
+
     func testRecipeToDomainDropsIngredientsNotInSource() {
         let schema = CapturedRecipeSchema(
             title: "Crêpes",

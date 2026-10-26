@@ -114,6 +114,28 @@ enum MeasurementUnits {
         }
     }
 
+    /// Units that are an amount in themselves, lowercased and without accents. "1" means nothing
+    /// to them unless the recipe writes it, so a number the model adds to "snufje zout" is
+    /// dropped on capture and ignored by scaling (#251).
+    private static let vagueNames: Set<String> = [
+        "pinch", "dash", "handful", "pizca", "pincee", "prise", "msp", "messerspitze", "snufje",
+    ]
+
+    /// True for a unit that's an amount in itself, such as "pinch" or "snufje", in any of the
+    /// app's languages and in the plural.
+    static func isVague(_ unit: String?) -> Bool {
+        guard let unit else { return false }
+        let folded = unit.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if vagueNames.contains(folded) {
+            return true
+        }
+        // Plurals: "pinches", "snufjes", "Prisen".
+        return ["es", "s", "n"].contains { suffix in
+            folded.hasSuffix(suffix) && vagueNames.contains(String(folded.dropLast(suffix.count)))
+        }
+    }
+
     static func kind(of unit: String, standard: VolumeStandard) -> MeasurementUnitKind? {
         guard let unit = lookUp(unit), let size = sizes[unit] else { return nil }
         return standard == .usCustomary ? size.usCustomary : size.metric
