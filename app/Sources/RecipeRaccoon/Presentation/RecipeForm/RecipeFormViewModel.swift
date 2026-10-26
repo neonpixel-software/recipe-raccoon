@@ -19,6 +19,8 @@ struct IngredientLineDraft: Identifiable, Equatable {
     /// tablespoons") and doesn't drop an ingredient the structured fields alone can't
     /// represent — see buildRecipe().
     fileprivate let original: IngredientLine?
+    /// The loaded line, shown under the fields when they don't say the same thing (#215).
+    let sourceLine: String?
 
     init(id: UUID = UUID(), amount: String = "", unit: String = "", ingredientName: String = "") {
         self.id = id
@@ -26,6 +28,7 @@ struct IngredientLineDraft: Identifiable, Equatable {
         self.unit = unit
         self.ingredientName = ingredientName
         original = nil
+        sourceLine = nil
     }
 
     init(ingredientLine: IngredientLine) {
@@ -34,6 +37,7 @@ struct IngredientLineDraft: Identifiable, Equatable {
         unit = ingredientLine.unit ?? ""
         ingredientName = ingredientLine.ingredientName ?? ""
         original = ingredientLine
+        sourceLine = IngredientSourceLine.shown(for: ingredientLine)
     }
 
     /// True while the fields still hold exactly what they were hydrated with.

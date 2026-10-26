@@ -5068,6 +5068,35 @@
           }
         }
       }
+    },
+    "As written: %@": {
+      "comment": "VoiceOver label for an ingredient row's source line on the review and edit screens (#215).",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Texte d'origine : %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original: %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Origineel: %@"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
