@@ -98,6 +98,25 @@ final class RecipeFormViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.ingredients.first?.amount, "1½")
     }
 
+    func testLoadedRowsKeepTheirSourceLineOnlyWhenItSaysMoreThanTheFields() {
+        let original = Recipe(
+            id: UUID(),
+            title: "Pancakes",
+            ingredients: [
+                IngredientLine(id: UUID(), rawText: "2 cups flour", amount: 2, unit: "cup", ingredientName: "flour"),
+                IngredientLine(id: UUID(), rawText: "1 cup plus 2 tablespoons sugar", amount: 1.125, unit: "cup", ingredientName: "sugar"),
+            ],
+            steps: [],
+            source: .typed,
+            tags: []
+        )
+
+        let viewModel = makeViewModel(mode: .edit(original))
+        viewModel.addIngredient()
+
+        XCTAssertEqual(viewModel.ingredients.map(\.sourceLine), [nil, "1 cup plus 2 tablespoons sugar", nil])
+    }
+
     func testSaveInEditModePreservesRawOnlyIngredientLineUntouchedByStructuredFields() throws {
         let original = Recipe(
             id: UUID(),

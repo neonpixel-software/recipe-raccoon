@@ -200,6 +200,24 @@ final class RecipeFormViewTests: XCTestCase {
         XCTAssertFalse(saveButton.isDisabled())
     }
 
+    func testIngredientRowShowsItsSourceLineWhenItSaysMore() throws {
+        let original = Recipe(
+            id: UUID(),
+            title: "Pancakes",
+            ingredients: [
+                IngredientLine(id: UUID(), rawText: "2 cups flour", amount: 2, unit: "cup", ingredientName: "flour"),
+                IngredientLine(id: UUID(), rawText: "1 cup plus 2 tablespoons sugar", amount: 1.125, unit: "cup", ingredientName: "sugar"),
+            ],
+            steps: [],
+            source: .typed,
+            tags: []
+        )
+        let sut = RecipeFormView(viewModel: makeViewModel(mode: .capture(original)), onSave: { _ in })
+
+        XCTAssertNoThrow(try sut.inspect().find(text: "1 cup plus 2 tablespoons sugar"))
+        XCTAssertThrowsError(try sut.inspect().find(text: "2 cups flour"))
+    }
+
     // MARK: tags
 
     func testTappingATagChipTogglesItsSelection() throws {

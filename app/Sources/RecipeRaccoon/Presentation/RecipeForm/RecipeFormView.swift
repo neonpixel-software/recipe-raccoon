@@ -225,6 +225,21 @@ private struct IngredientRow: View {
                 .font(PCFont.body(15))
                 .foregroundStyle(PCColor.textPrimary)
                 .textFieldStyle(.plain)
+
+                if let sourceLine = draft.sourceLine {
+                    // The line as the recipe writes it, to check the fields against (#215).
+                    Label {
+                        Text(verbatim: sourceLine)
+                    } icon: {
+                        Image(systemName: "text.quote")
+                    }
+                    .font(PCFont.body(13))
+                    .foregroundStyle(PCColor.textPrimary.opacity(0.55))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text("As written: \(sourceLine)"))
+                    .accessibilityAddTraits(.isStaticText)
+                }
             }
             .padding(12)
             .background(PCColor.surface, in: RoundedRectangle(cornerRadius: 12))
