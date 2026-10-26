@@ -32,8 +32,8 @@ enum CompoundAmount: Equatable {
         for (first, second) in zip(numbers, numbers.dropFirst()) {
             guard let firstUnit = Self.unit(between: line[first.upperBound..<second.lowerBound]),
                   let secondUnit = IngredientDescriptors.leadingUnit(in: String(line[second.upperBound...])),
-                  let firstValue = IngredientAmountParser.parse(String(line[first]))?.value,
-                  let secondValue = IngredientAmountParser.parse(String(line[second]))?.value else { continue }
+                  let firstValue = IngredientAmountParser.parse(String(line[first]), unit: firstUnit)?.value,
+                  let secondValue = IngredientAmountParser.parse(String(line[second]), unit: secondUnit)?.value else { continue }
             guard let amount = Self.combining(firstValue, firstUnit, secondValue, secondUnit) else { return nil }
             self = amount
             return

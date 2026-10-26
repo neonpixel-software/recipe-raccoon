@@ -28,6 +28,8 @@ final class CompoundAmountTests: XCTestCase {
         XCTAssertEqual(try combined("1 EL und 1 TL Zucker").0, 1 + 1.0 / 3, accuracy: 1e-9)
         XCTAssertEqual(try combined("1 kg 250 g de farine").0, 1.25, accuracy: 1e-9)
         XCTAssertEqual(try combined("1 lb, 4 oz minced beef").0, 1.25, accuracy: 1e-9)
+        // Each part's unit decides whether its comma is a decimal comma, as in a single amount.
+        XCTAssertEqual(try combined("1,250 l plus 200 ml water").0, 1.45, accuracy: 1e-9)
         XCTAssertEqual(try combined("Il vous faut 1 tasse plus 2 c. à s. de sucre").1, "tasse")
     }
 
