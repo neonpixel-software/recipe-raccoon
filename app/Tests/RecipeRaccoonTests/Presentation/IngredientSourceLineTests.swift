@@ -16,11 +16,19 @@ final class IngredientSourceLineTests: XCTestCase {
         XCTAssertNil(shown("3 eggs", 3, nil, "eggs"))
         XCTAssertNil(shown("salt", nil, nil, "salt"))
         XCTAssertNil(shown("1 can tomatoes", 1, "can", "tomatoes"))
+        XCTAssertNil(shown("1 1/2 fl oz water", 1.5, "fl oz", "water"))
+        XCTAssertNil(shown("200 g creme fraiche", 200, "g", "crème fraîche"))
+    }
+
+    func testAnAmountWithinOnePercentOfTheFieldMatches() {
+        XCTAssertNil(shown("⅔ cup oil", 0.67, "cup", "oil"))
+        XCTAssertNotNil(shown("33 g sugar", 34, "g", "sugar"))
     }
 
     func testConnectingWordsBetweenUnitAndNameAreAllowed() {
         XCTAssertNil(shown("250 g de farine", 250, "g", "farine"))
         XCTAssertNil(shown("2 cl d'huile", 2, "cl", "huile"))
+        XCTAssertNil(shown("2 cl d’huile", 2, "cl", "huile"))
         XCTAssertNil(shown("1 cup of milk", 1, "cup", "milk"))
     }
 
@@ -34,6 +42,8 @@ final class IngredientSourceLineTests: XCTestCase {
         XCTAssertNotNil(shown("1 2/3 cups flour", 1.125, "cup", "flour"))
         XCTAssertNotNil(shown("2 tsp salt", 2, "tbsp", "salt"))
         XCTAssertNotNil(shown("2 cups flour", 2, "cup", "sugar"))
+        // Units allow plurals, names don't.
+        XCTAssertNotNil(shown("2 eggs", 2, nil, "egg"))
     }
 
     func testALineWithoutFieldsIsShown() {

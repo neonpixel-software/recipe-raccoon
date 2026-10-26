@@ -16,13 +16,16 @@ enum IngredientSourceLine {
 
     /// True when `text` is the line's amount, unit and name in that order and nothing else,
     /// however the amount is written ("1/2", "½", "0.5") and whichever spelling of the unit
-    /// it uses ("cups" for "cup", "tbsp" for "tablespoon").
+    /// it uses ("cups" for "cup", "tbsp" for "tablespoon"). The name ignores case and accents,
+    /// as units do, but not plurals: "2 eggs" with the name "egg" shows its line.
     private static func isComposed(of line: IngredientLine, text: String) -> Bool {
         let words = text.split(whereSeparator: \.isWhitespace).map(String.init)
         guard let amount = line.amount else {
             return matchesUnitAndName(words[...], unit: line.unit, name: line.ingredientName)
         }
-        // A written amount is one to three words: "2", "1 1/2", "1 ½ cups" is two plus a unit.
+        // The first one, two or three words may be the amount ("2", "1 1/2", "1 ½ cups" read
+        // with its unit); the line's spacing decides which. Within 1%, as servings scaling
+        // matches a written amount, so a field rounded by the model still matches its line.
         for count in 1...min(3, words.count) {
             let written = words[..<count].joined(separator: " ")
             guard let parsed = IngredientAmountParser.parse(written, unit: line.unit),
@@ -56,7 +59,7 @@ enum IngredientSourceLine {
         if unit != nil, let elided = ["d'", "d’"].first(where: { remainder.lowercased().hasPrefix($0) }) {
             remainder.removeFirst(elided.count)
         }
-        return remainder.compare(name ?? "", options: [.caseInsensitive]) == .orderedSame
+        return remainder.compare(name ?? "", options: [.caseInsensitive, .diacriticInsensitive]) == .orderedSame
     }
 
     /// The same word ignoring case, or two spellings of one measurement ("cups" and "cup").
