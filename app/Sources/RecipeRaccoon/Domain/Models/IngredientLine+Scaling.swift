@@ -4,14 +4,20 @@ extension IngredientLine {
     /// The line for `factor` times the recipe's servings (Phase 15.3), shown on the recipe screen
     /// only: the saved recipe never changes. `amount` is the exact scaled amount, so weights
     /// come from it, and `rawText` shows it rounded to what a cook can measure
-    /// (`IngredientAmountRounding`). A line without an amount ("salt to taste") stays as it is.
+    /// (`IngredientAmountRounding`). A line without an amount ("salt to taste") stays as it is,
+    /// and so does a vague unit whose amount the line doesn't write ("snufje zout" captured with
+    /// an amount of 1 doesn't become "1½ snufje zout", #251).
     func scaled(by factor: Double) -> IngredientLine {
         guard let amount, amount > 0, factor > 0, factor != 1 else { return self }
+        let written = Self.writtenAmount(amount, unit: unit, in: rawText)
+        if written == nil, MeasurementUnits.isVague(unit) {
+            return self
+        }
         let exact = amount * factor
         let shown = IngredientAmountFormatter.format(IngredientAmountRounding.rounded(exact, unit: unit))
         var line = self
         line.amount = exact
-        line.rawText = text(showing: shown, originalAmount: amount, factor: factor)
+        line.rawText = text(showing: shown, at: written, factor: factor)
         return line
     }
 
@@ -19,9 +25,9 @@ extension IngredientLine {
     /// "Il vous faut 250 g de farine, tamisée" → "Il vous faut 500 g de farine, tamisée"), so
     /// the rest of the line stays as the recipe writes it. Only when the amount isn't written
     /// anywhere in the line is one built from amount, unit and name ("a dozen eggs" → "6 eggs"),
-    /// or, without a name, the factor put in front of the line ("2 × a handful").
-    private func text(showing shown: String, originalAmount amount: Double, factor: Double) -> String {
-        if let written = Self.writtenAmount(amount, unit: unit, in: rawText) {
+    /// or, without a name, the factor put in front of the line ("2 × a can").
+    private func text(showing shown: String, at written: Range<String.Index>?, factor: Double) -> String {
+        if let written {
             return rawText.replacingCharacters(in: written, with: shown)
         }
         guard let ingredientName else {
@@ -36,7 +42,7 @@ extension IngredientLine {
     /// "⅔ cup" with 0.67 typed as its amount still matches; the leading "1" of "1 (2 lb)
     /// chicken" with an amount of 2 doesn't.
     private static func writtenAmount(_ amount: Double, unit: String?, in text: String) -> Range<String.Index>? {
-        let fraction = "[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞]"
+        let fraction = IngredientAmountParser.fractionPattern
         let slash = #"\s*[/⁄]\s*"#
         let number = #"\d+\s+\d+"# + slash + #"\d+|\d+\s?"# + fraction + #"|\d+"# + slash + #"\d+|\d+(?:[.,]\d+)?|"# + fraction
         let pattern = #"(?<![\d.,/⁄\p{L}])(?:"# + number + #")(?![\d/⁄]|[.,]\d)"#

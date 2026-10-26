@@ -14,7 +14,7 @@ enum CompoundAmount: Equatable {
     private static let joiners: Set<String> = ["plus", "+", ",", "and", "y", "et", "und", "en"]
 
     private static let numberRegex: NSRegularExpression? = {
-        let fraction = "[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞]"
+        let fraction = IngredientAmountParser.fractionPattern
         let slash = #"\s*[/⁄]\s*"#
         let number = #"\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+\s+\d+"# + slash + #"\d+|\d+\s?"# + fraction
             + #"|\d+"# + slash + #"\d+|\d+(?:[.,]\d+)?|"# + fraction
