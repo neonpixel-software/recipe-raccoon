@@ -11,4 +11,4 @@ They were written for this purpose and cover the cases that have gone wrong:
 - `pancakes.txt`: a list followed by prose steps.
 - `vinaigrette-de.txt`: German, terse; a control that should come out clean.
 
-Output depends on the model version, so results are recorded in PLAN.md with the date and OS.
+Output depends on the model version, so results are recorded with the date and OS in `docs/history/phase-05-typed-capture.md`.

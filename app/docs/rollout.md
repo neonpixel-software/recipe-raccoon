@@ -106,7 +106,7 @@ on each device unless it names one.
 - **The 4.1 check:** with the Mac app open and in front, edit a recipe on the iPhone. The edit must
   appear on the Mac within about a minute, without clicking the window. When it does, tick 4.1 in
   PLAN.md. If it doesn't, the push isn't arriving: compare with the development behaviour in the
-  4.1 note before blaming the app.
+  4.1 history note (`docs/history/phase-04-settings-icloud-sync.md`) before blaming the app.
 - Delete a recipe on one device; it disappears on the other.
 - Switch one device back to Local: its recipes stay, and later edits there don't sync.
 

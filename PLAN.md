@@ -98,7 +98,7 @@ Each item has its acceptance criteria and a short status: when it was done, what
 
 **Open now:**
 - **4.2 Sync status in Settings:** the in-app check on a TestFlight build in iCloud mode.
-- **12.4 TestFlight → production rollout:** `v1.1.0` is in the external beta (Stage 2), then App Review (Stage 3) and release (Stage 4). The real-iPad checks are in #219.
+- **12.4 TestFlight → production rollout:** `v1.1.0` is in the external beta (Stage 2) until about 2026-10-31, then App Review (Stage 3) and release (Stage 4). The real-iPad checks are in #219.
 - The undecided items at the end of this file.
 
 ### Phase 1: Foundation
@@ -135,7 +135,7 @@ Each item has its acceptance criteria and a short status: when it was done, what
 
 - [ ] **4.2 Sync status in Settings** — while storage is iCloud, Settings → Storage says when recipes last synced, or why sync isn't working, instead of failing silently (#208, after #207 in 12.4 Stage 1).
   Acceptance: a failed export shows an error within a few seconds, both in a test that posts a failed event and in the app; healthy sync shows the time of the last successful sync; nothing changes while storage is Local; all new text is in the five languages.
-  Status: built 2026-10-24 (#245). Left: the in-app check on a TestFlight build in iCloud mode. "Last synced" should show within seconds of launch, airplane mode should show the grey waiting row and signing out of iCloud the red one, and switching to On This Device should hide the row, which still updates after switching back. The new strings need the native-speaker check. [History](docs/history/phase-04-settings-icloud-sync.md#42)
+  Status: built 2026-10-24 (#245). Left: the in-app check on a TestFlight build in iCloud mode. "Last synced" should show within seconds of launch, airplane mode should show the grey waiting row and signing out of iCloud the red one, and switching to On This Device should hide the row, and switching back should show it updating again. The new strings need the native-speaker check. [History](docs/history/phase-04-settings-icloud-sync.md#42)
 
 **Checkpoint:** sync verified across two devices/simulators.
 
@@ -146,7 +146,7 @@ Each item has its acceptance criteria and a short status: when it was done, what
   - A German three-decimal amount of a small unit ("2,500 g" meaning 2.5 g) reads as 2500, and "1.000 g" reads as 1.
   - An amount restated within one system is added up ("1 cup 8 fl oz milk" reads as 2 cups).
   - A sentence listing the ingredients can come through as the first step; the user removes it on the review screen.
-  - If the model rephrases both the line and the name, a real ingredient is dropped without a sign on the review screen.
+  - If the model rephrases both the line and the name, a real ingredient is dropped without a sign on the review screen (a risk, not seen in the on-device samples).
   - A step that equals the end of the step before it is dropped.
 
   [History](docs/history/phase-05-typed-capture.md#51)
@@ -273,7 +273,7 @@ Added 2026-10-16, after the 1.0.1 release. Design: `app/docs/plans/2026-10-16-se
   Status: done 2026-10-07, redone 2026-10-14 for the new bundle ID `com.neonpixel.reciperaccoon`. [History](docs/history/phase-12-release.md#123)
 - [ ] **12.4 TestFlight → production rollout** — internal testing, then beta, then public release, with a short runbook for what to verify at each stage.
   Acceptance: v1 live in the public App Store on all three platforms.
-  Status: the runbook is `app/docs/rollout.md` (Stage 0 before tagging, Stage 1 internal TestFlight, Stage 2 external beta, Stage 3 App Review, Stage 4 release). The CloudKit schema is in production (2026-10-15). Stage 1 passed on `v1.1.0` (2026-10-24), including the native-speaker check of its strings, and it was submitted for external testing the same day (Stage 2). Left: Stage 2, then App Review and release, and the real-iPad checks (#219: camera, iCloud sync, a narrow window). [History](docs/history/phase-12-release.md#124)
+  Status: the runbook is `app/docs/rollout.md` (Stage 0 before tagging, Stage 1 internal TestFlight, Stage 2 external beta, Stage 3 App Review, Stage 4 release). The CloudKit schema is in production (2026-10-15). Stage 1 passed on `v1.1.0` (2026-10-24), including the native-speaker check of its strings, and it passed Beta App Review the same day. The external beta (Stage 2) runs until about 2026-10-31. Left: Stage 2, then App Review and release, and the real-iPad checks (#219: camera, iCloud sync, a narrow window). [History](docs/history/phase-12-release.md#124)
 
 **Checkpoint:** Recipe Raccoon is publicly available on the App Store (macOS, iPadOS, iOS).
 
