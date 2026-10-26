@@ -80,4 +80,16 @@ final class IngredientAmountParserTests: XCTestCase {
         XCTAssertNil(IngredientAmountParser.parse("-5"))
         XCTAssertNil(IngredientAmountParser.parse("0"))
     }
+
+    func testTheFractionPatternMatchesEveryFractionItParses() throws {
+        let regex = try NSRegularExpression(pattern: "^" + IngredientAmountParser.fractionPattern + "$")
+        let glyphs = IngredientAmountParser.fractionPattern.dropFirst().dropLast()
+
+        XCTAssertEqual(glyphs.count, 15)
+        for glyph in glyphs {
+            let text = String(glyph)
+            XCTAssertNotNil(IngredientAmountParser.parse(text), text)
+            XCTAssertEqual(regex.numberOfMatches(in: text, range: NSRange(text.startIndex..., in: text)), 1, text)
+        }
+    }
 }

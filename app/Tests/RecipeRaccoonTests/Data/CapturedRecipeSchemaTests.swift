@@ -172,6 +172,19 @@ final class CapturedRecipeSchemaTests: XCTestCase {
         XCTAssertEqual(line.unit, "snufje")
     }
 
+    /// A number written as a word isn't a written number, so the line keeps its text (#252 review).
+    func testToDomainDropsAVagueAmountWrittenAsAWord() {
+        let line = CapturedIngredientSchema(rawText: "two pinches of salt", amount: "2", unit: "pinches", ingredientName: "salt").toDomain()
+
+        XCTAssertNil(line.amount)
+    }
+
+    func testToDomainKeepsAVagueAmountWrittenAsAFraction() {
+        let line = CapturedIngredientSchema(rawText: "½ snufje zout", amount: "½", unit: "snufje", ingredientName: "zout").toDomain()
+
+        XCTAssertEqual(line.amount, 0.5)
+    }
+
     func testToDomainKeepsAWrittenOrCountedAmount() {
         let pinches = CapturedIngredientSchema(rawText: "2 pinches salt", amount: "2", unit: "pinches", ingredientName: "salt").toDomain()
         let clove = CapturedIngredientSchema(rawText: "a clove of garlic", amount: "1", unit: "clove", ingredientName: "garlic").toDomain()

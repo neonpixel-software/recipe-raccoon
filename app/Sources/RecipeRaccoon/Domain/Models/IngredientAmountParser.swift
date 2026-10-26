@@ -16,6 +16,10 @@ enum IngredientAmountParser {
         "⅚": 5.0 / 6, "⅛": 1.0 / 8, "⅜": 3.0 / 8, "⅝": 5.0 / 8, "⅞": 7.0 / 8,
     ]
 
+    /// A regex character class of the fractions `parse` reads ("[½⅓⅔…]"), so code that finds
+    /// amounts in a line knows the same glyphs (#252 review).
+    static let fractionPattern = "[" + String(vulgarFractions.keys.sorted()) + "]"
+
     /// Accepts "2", "1.5", "2,5", "1,000", "1/2", "1 1/2", "½", "1½", "1 ½", optionally followed
     /// by a unit ("100g", "1/2 cup", "1/2 fl oz"). Returns nil for anything else, including
     /// ranges ("2-3"), words ("a few") and amounts that aren't positive. Compound amounts

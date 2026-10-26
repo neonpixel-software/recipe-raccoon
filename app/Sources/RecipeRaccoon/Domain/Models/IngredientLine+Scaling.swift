@@ -42,7 +42,7 @@ extension IngredientLine {
     /// "⅔ cup" with 0.67 typed as its amount still matches; the leading "1" of "1 (2 lb)
     /// chicken" with an amount of 2 doesn't.
     private static func writtenAmount(_ amount: Double, unit: String?, in text: String) -> Range<String.Index>? {
-        let fraction = "[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞]"
+        let fraction = IngredientAmountParser.fractionPattern
         let slash = #"\s*[/⁄]\s*"#
         let number = #"\d+\s+\d+"# + slash + #"\d+|\d+\s?"# + fraction + #"|\d+"# + slash + #"\d+|\d+(?:[.,]\d+)?|"# + fraction
         let pattern = #"(?<![\d.,/⁄\p{L}])(?:"# + number + #")(?![\d/⁄]|[.,]\d)"#

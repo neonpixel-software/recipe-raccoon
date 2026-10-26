@@ -36,4 +36,6 @@ Built 2026-10-21: `IngredientLine.scaled(by:)` and `IngredientAmountRounding` (D
 
 Checked in the Mac app 2026-10-21, on that banana bread scaled from 10 to 15 servings: As Written showed 190 gr boter, 370 gr bloem (375 is a tie), 90 ml melk, 1½ tl vanille-extract and 4½ rijpe bananen, each with the original under it, "handvol gehakte chocola of noten" unchanged, and "(recipe: 10)" with a reset button; Weight showed 188 g boter and 375 g bloem (from the exact amounts); reset went back to 10. One capture quirk: "snufje zout" came with an amount of 1, so it scales to "1½ snufje zout". Left: the iPhone check, on the next TestFlight build (a development build installed over the TestFlight app replaced the app's data container).
 
+The snufje quirk is fixed in #252 (#251): a vague unit (pinch, snufje, Prise…) on a line without a written number gets no amount on capture, and scaling leaves such a line as written, which also covers recipes saved before the fix. A number written as a word ("two pinches") counts as no number.
+
 Done 2026-10-24: scaling in As Written and Weight passed on the iPhone on the `v1.1.0` TestFlight build (Stage 1, 12.4), and the native speakers checked the new strings.

@@ -257,7 +257,7 @@ Added 2026-10-16, after the 1.0.1 release. Design: `app/docs/plans/2026-10-16-se
   Status: done 2026-10-24 on `v1.1.0` (Stage 1). [History](docs/history/phase-15-servings-scaling.md#152)
 - [x] **15.3 Scaling on the recipe screen** — a +/− servings control that scales the ingredient amounts for the moment (not saved), with kitchen-friendly rounding, the original line underneath, and the Weight view following; a "Set servings" prompt when the recipe has none.
   Acceptance: a recipe for 2 shown for 4 doubles every amount (rounded as the design says), lines without an amount stay as written, grams double in the Weight view, reopening shows the recipe's own number, and all new text is in the five languages.
-  Status: done 2026-10-24 on `v1.1.0` (Stage 1). Known limit: a line captured with an amount of 1 for a vague unit ("snufje zout") scales to "1½ snufje zout". [History](docs/history/phase-15-servings-scaling.md#153)
+  Status: done 2026-10-24 on `v1.1.0` (Stage 1). A vague unit without a written number ("snufje zout") stays as written (#251). [History](docs/history/phase-15-servings-scaling.md#153)
 
 **Checkpoint:** a recipe can be cooked for any number of servings without doing the arithmetic.
 
