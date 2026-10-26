@@ -27,6 +27,7 @@ Recipe Raccoon collects **no** user data, shows **no** ads, and is completely an
 app/    SwiftUI client (macOS, iPadOS, iOS) — one shared codebase, Clean Architecture + MVVM, SwiftData
 api/    .NET 10 density API (Minimal APIs, EF Core + PostgreSQL) — serves ingredient density data only
 PLAN.md Source of truth for architecture and the phase-by-phase implementation plan
+docs/history/ Dated notes behind each phase's status: device checks, issue fixes, TestFlight stages
 ```
 
 The API does exactly one job — serve ingredient density data for unit conversion — and is fully decoupled from the client: it is not involved in recipe storage, sync, or capture.

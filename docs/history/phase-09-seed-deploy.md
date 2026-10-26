@@ -1,0 +1,29 @@
+# Phase 9: Seed & deploy — history
+
+The dated notes for Phase 9, moved out of [PLAN.md](../../PLAN.md) word for word (#217): checks on devices, issue fixes and TestFlight stages, in the order they were written. Older notes can describe a state a later note replaced; PLAN.md has the current status.
+
+## 9.1
+
+**Seed data import**
+
+Acceptance: common ingredients (flour, sugar, butter, etc.) return sensible density values from the read endpoint; every seed entry records its source (see below).
+
+Source: [USDA FoodData Central](https://fdc.nal.usda.gov/), SR Legacy dataset — its household portions give the gram weight of a known volume (one US cup, 236.5882365 ml), which the seed script divides down to grams per millilitre (PR #70). The unit lives in `food_portion.modifier`, not in `measure_unit_id` (always 9999 "undetermined" for SR Legacy) or `portion_description` (always empty): 1,691 of the 14,449 SR Legacy portion rows have `modifier="cup"`, 1,469 of them with `amount=1` — e.g. "Wheat flour, white, all-purpose, enriched, bleached" 125 g, "Sugars, granulated" 200 g, "Butter, salted" 227 g, "Honey" 339 g, "Cocoa, dry powder, unsweetened" 86 g (checked against FDC's 2018-04 SR Legacy CSV). Flour is filed under "Wheat flour, …", not "Flour, …". Many staples carry qualified cup rows instead (`cup packed`/`cup unpacked` for brown sugar, `cup sifted`/`cup unsifted` for powdered sugar, `cup, crumbs` under white bread), so the script picks each ingredient's row explicitly rather than matching "cup" as a substring; ingredients with no cup row fall back to `tbsp`/`tsp` rows or are left for manual curation. FDC data is public domain, published under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/), so it can ship in this public MIT-licensed repo. Do not seed from cooking sites' weight charts (e.g. King Arthur) or the FAO/INFOODS density database: the former are all-rights-reserved, the latter restricts commercial reuse (issue #50).
+
+Provenance: each seed row carries its FDC ID and the portion it came from (amount, modifier as FDC gives it, grams) as fields of `DensitySeedRow`, with the FDC food description as a comment, so any value can be re-checked against the source. No `sourceUrl` column — nothing reads it yet; add one only if curation needs it later.
+
+Note: seed rows must go through the `DensityEntry` constructor (or canonicalize names to NFC + trim) — the citext index is byte-exact except for case, so a non-canonical seed row (padded, or a decomposed Unicode accent) could never be merged by a later upsert; it would 409 (issue #55).
+
+Done 2026-09-28: `UsdaSeedData` holds 72 rows picked by hand from the 2018-04 CSV (flours and grains, sugars and syrups, fats, dairy, leaveners and spices, liquids and condiments, nuts and mix-ins; "flour" and "sugar" repeat the all-purpose and granulated rows). `src/RecipeRaccoon.DensityApi.Seed` loads them (`dotnet run --project src/RecipeRaccoon.DensityApi.Seed -- --connection "<connection string>"`). It inserts only names not already in the table, so re-running it never overwrites a hand-curated value or bumps its `lastModifiedUtc`, it refuses to run on a database with pending migrations, and `--dry-run` reports what it would insert without writing. Cake flour is left out: its only SR Legacy portion ("1 cup unsifted, dipped" = 137 g) is heavier than bread flour's. Verified locally against the Podman Postgres: 71 rows inserted next to an existing hand-made "Flour" row, which was kept; a second run inserted nothing; `GET /density-entries` with the read key returns all-purpose flour 0.528, granulated sugar 0.845 and butter 0.959 g/ml. `DensityEntriesSeedTests` checks the same thing against a Testcontainers database.
+
+## 9.2
+
+**Deploy to Ubuntu VPS**
+
+Acceptance: read endpoint reachable from outside the VPS over HTTPS with the read key; write endpoints not reachable without the write key.
+
+Note: TLS termination (via the VPS's existing nginx + certbot), production key storage, Postgres backups, and process supervision are documented in `api/docs/deploy.md` (issue #47). A fixed-window rate limiter on the read endpoint (60 req/min, since the read key ships inside the app binary and is extractable) is already implemented and covered by `DensityEntriesRateLimitTests`.
+
+Deploy approach (2026-09-29): the same as `neonpixel-website` on the same VPS, so the server runs one kind of setup. A framework-dependent publish is uploaded by `.github/workflows/deploy-api.yml` (started by hand, `main` only) into `releases/<id>/` with a `current` symlink and run by systemd behind nginx + certbot. Postgres comes from Ubuntu's package. No containers on the VPS, and no .NET SDK or repo checkout there: migrations and the seed run from a Mac through an SSH tunnel, before the deploy that needs them. Deploys are manual so a migration is always applied before the code that expects it. Host, paths and port are GitHub secrets; the API keys and database password live only in a root-only env file on the VPS. The runbook's nginx config replaces `X-Forwarded-For` rather than appending to it, because the rate limiter reads the header's first value and an appended header would let a client pick its own address.
+
+Done 2026-09-29: the runbook and deploy workflow from PR #111 were run against the real VPS, migrations applied and the 72 seed rows loaded from the Mac through the SSH tunnel, and the first deploy workflow run on `main` passed. Its smoke test runs on a GitHub runner, so from outside the VPS: `/health` returns 200 over HTTPS, `POST /density-entries` without a key returns 401, and `GET /density-entries` with the production read key returns 200 from the seeded database. The nightly backup cron is installed and a test dump was written. The problems hit on the way are in the runbook's troubleshooting section.
