@@ -288,8 +288,11 @@ Added 2026-10-16, after the 1.0.1 release. Design: `app/docs/plans/2026-10-16-se
 | VPS/API becomes a single point of failure for conversion | Low — client caches locally, so downtime only blocks *new* density data, not existing conversions | Local cache (Phase 10.1) already covers this |
 | No telemetry by design — failures are invisible until users report them | Medium — no field signal for Apple Intelligence extraction failure rates (Phases 5.1 / 6.1), density API outages or misbehavior as real users see them, or CloudKit sync failures (Phase 4); user complaints are the only feedback channel | Accepted trade-off to keep the app completely anonymous. Compensate with manual/semi-automated on-device verification before each release (Phase 12.4 runbook) and accept a slow feedback loop. If that loop proves too slow, revisiting the anonymity promise is a product decision, not a technical one |
 
+## Decided
+
+- Recipe search/browse (2026-11-03, #218, #220): the list has the tag filter only. No text search or browse-by-ingredient is planned until finding a recipe becomes a real problem; nobody in testing has had trouble finding one.
+
 ## Open items / not yet decided
 
-- Recipe search/browse UX (by tag, by ingredient) — not discussed yet, reasonable default (search + tag filter) assumed but not specced.
 - Admin tooling for the density API beyond a basic script.
 - If Swift Package Manager dependencies are ever added (a `Package.swift` shows up), add a `swift` ecosystem entry to `.github/dependabot.yml` — not there yet since there's nothing for it to check.
