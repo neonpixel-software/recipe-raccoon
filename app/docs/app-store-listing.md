@@ -7,8 +7,8 @@ platforms' versions.
 
 The words match the app: the capture options are called what the add-recipe screen calls them
 (Type It, Paste a Link) in each language, and Spanish, German and Dutch use the informal "you"
-like the app, French the formal one. The translations need the same native-speaker check the app's
-strings had (#65, #156) before the first submission.
+like the app, French the formal one. Native speakers checked the translations before the first
+submission (2026-11-03), like the app's strings (#65, #156).
 
 Weight is in the English listing only, like the weight screenshot (`screenshots.md`): the density
 data names ingredients in English, so a recipe written in another language gets no weights.

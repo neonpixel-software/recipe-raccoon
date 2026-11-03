@@ -36,7 +36,7 @@ it in their own language (the English version is the original and applies if the
 | German | `https://github.com/neonpixel-software/recipe-raccoon/blob/main/PRIVACY.de.md` |
 | Dutch | `https://github.com/neonpixel-software/recipe-raccoon/blob/main/PRIVACY.nl.md` |
 
-The translations still need a native speaker's review before the first submission, like the
+Native speakers checked the translations before the first submission (2026-11-03), like the
 store listing (`app-store-listing.md`).
 
 ### Why "Data Not Collected" is true
