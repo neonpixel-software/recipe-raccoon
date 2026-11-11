@@ -22,3 +22,11 @@ updates:
         patterns:
           - "Microsoft.*"
           - "Npgsql.*"
+    # Major .NET versions (e.g. 10 -> 11) need the TFM, CI SDK and Docker images moved too, so
+    # they're done by hand in one PR rather than package by package (#255 bumped one package
+    # to 11.0.0 while the runtime stayed on 10).
+    ignore:
+      - dependency-name: "Microsoft.*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "Npgsql.*"
+        update-types: ["version-update:semver-major"]
